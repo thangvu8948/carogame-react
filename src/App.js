@@ -1,53 +1,32 @@
-import logo from './logo.svg';
-import './App.css';
-
+import React, { useState, useEffect } from "react";
+import { Component } from "react";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import "./App.css";
+import Homepage from "./components/homepage";
+import Login from "./components/login";
+import AccountService from "./services/account.service";
 function App() {
-  return(
-    <div class="container">
-      <div class="d-flex justify-content-center h-100">
-        <div class="card">
-          <div class="card-header">
-            <h3>Sign In</h3>
-            <div class="d-flex justify-content-end social_icon">
-              <span><i class="fab fa-facebook-square"></i></span>
-              <span><i class="fab fa-google-plus-square"></i></span>
-              <span><i class="fab fa-twitter-square"></i></span>
-            </div>
-          </div>
-          <div class="card-body">
-            <form>
-              <div class="input-group form-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-user"></i></span>
-                </div>
-                <input type="text" class="form-control" placeholder="username"/>
-                
-              </div>
-              <div class="input-group form-group">
-                <div class="input-group-prepend">
-                  <span class="input-group-text"><i class="fas fa-key"></i></span>
-                </div>
-                <input type="password" class="form-control" placeholder="password"></input>
-              </div>
-              <div class="row align-items-center remember">
-                <input type="checkbox"/>Remember Me
-              </div>
-              <div class="form-group">
-                <input type="submit" value="Login" class="btn float-right login_btn"></input>
-              </div>
-            </form>
-          </div>
-          <div class="card-footer">
-            <div class="d-flex justify-content-center links">
-              Don't have an account?<a href="#">Sign Up</a>
-            </div>
-            <div class="d-flex justify-content-center">
-              <a href="#">Forgot your password?</a>
-            </div>
-          </div>
-        </div>
+  const [currentUser, setCurrentUser] = useState(undefined);
+
+  useEffect(() => {
+    const user = AccountService.getCurrentUser();
+    console.log("a");
+    if (user) {
+      console.log(user);
+      setCurrentUser(user);
+    }
+  }, []);
+
+  return (
+    <>
+    <Router>
+      <div className="App">
+        <Switch>
+          <Route path="/" component={currentUser ? Homepage : Login} />
+        </Switch>
       </div>
-    </div>
+    </Router>
+    </>
   );
 }
 
