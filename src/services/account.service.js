@@ -6,7 +6,7 @@ const API_URL = "http://localhost:1337/";
 class AccountService {
 
     async login(username, password) {
-        const res= await Post(API_URL + "login", {
+        const res = await Post(API_URL + "login", {
             "Username": username,
             "Password": password
         }, { 'Content-Type': 'application/json' });
@@ -18,23 +18,18 @@ class AccountService {
         localStorage.removeItem("user");
     }
 
-    async register(name, password,repassword) {
+    async register(name, password, repassword) {
         return await Post(API_URL + "register",
             {
                 'Username': name,
                 'Password': password,
-                'RePassword':repassword
+                'RePassword': repassword
             },
             { 'Content-Type': 'application/json' }
         );
-    }   
+    }
 
     getCurrentUser() {
-        try {
-            console.log(JSON.parse(localStorage.getItem('user')));
-        } catch(e) {
-            console.log(e)
-        }
         return JSON.parse(localStorage.getItem('user'));
     }
 
