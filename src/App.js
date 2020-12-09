@@ -18,15 +18,15 @@ function App() {
   }, []);
 
   return (
-    <>
+    //<Homepage/>
     <Router>
       <div className="App">
         <Switch>
           <Route path="/" component={currentUser ? Homepage : Login} />
+          <Route path="/caro" component={Homepage}/>
         </Switch>
       </div>
     </Router>
-    </>
   );
 }
 

@@ -10,27 +10,32 @@ class AccountService {
             "Username": username,
             "Password": password
         }, { 'Content-Type': 'application/json' });
-        localStorage.setItem("token", res.token);
+        localStorage.setItem("user", JSON.stringify(res.token));
         return res;
     }
 
     logout() {
-        localStorage.removeItem("token");
+        localStorage.removeItem("user");
     }
 
-    async register(name, email, password) {
+    async register(name, password,repassword) {
         return await Post(API_URL + "register",
             {
                 'Username': name,
-                'Email': email,
-                'Password': password
+                'Password': password,
+                'RePassword':repassword
             },
             { 'Content-Type': 'application/json' }
         );
-    }
+    }   
 
     getCurrentUser() {
-        return JSON.parse(localStorage.getItem('token'));;
+        try {
+            console.log(JSON.parse(localStorage.getItem('user')));
+        } catch(e) {
+            console.log(e)
+        }
+        return JSON.parse(localStorage.getItem('user'));
     }
 
     // async auth() {

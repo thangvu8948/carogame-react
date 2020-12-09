@@ -3,7 +3,7 @@ import React, { useState } from "react";
 export default function Homepage() {
     return (
         <div className="container">
-           <h1>Caro</h1>
+           <h1>GameCaro</h1>
         </div>
     );
 }
