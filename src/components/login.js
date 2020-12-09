@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import "../assets/login.css";
 import AccountService from "../services/account.service";
+import $ from 'jquery';
 export default function Login() {
     const [userName, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [repeatPassword, setRepeatPassword] = useState("");
-    const [email, setEmail] = useState("");
+    const [newUserName, setNewUserName] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [rePassword, setRePassword] = useState("");
     // function validateForm() {
     //     return email.length > 0 && password.length > 0;
     // }
@@ -15,29 +17,26 @@ export default function Login() {
     const handlePasswordChange = (event) => {
         setPassword(event.target.value);
     }
-    const handleRepeatPassword = (event) => {
-        setRepeatPassword(event.target.value);
-    }
-    const handleEmailChange = (event) => {
-        setEmail(event.target.value);
-    }
     const handleSubmitLogin = async (event) => {
         event.preventDefault();
         const res = await AccountService.login(userName, password);
         if (Boolean(res.token)) {
-            window.location.href = "/caro";
+            const tokens = res.token.split(".");
+            const data = JSON.parse(atob(tokens[1]));
+            window.location.reload();
+
         }
     }
-
     const handleSubmitRegister = async (event) => {
         event.preventDefault();
-        if (password !== repeatPassword) {
-            alert("Password is not match");
-            return;
+        var data = {};
+        $('#signupform').serializeArray().map(function (x) { data[x.name] = x.value; });
+        console.log(data);
+        const res = await AccountService.register(data.newuser, data.newpass, data.repass);
+        if (res) {
+            alert("Sign Up Successfull");
         }
-        const res = await AccountService.register(userName, email, password);
     }
-
     return (
         <div className="row">
             <div className="col-md-6 mx-auto p-0">
@@ -84,28 +83,49 @@ export default function Login() {
                                         <div className="foot"> <a href="#">Forgot Password?</a> </div>
                                     </div>
                                 </form>
-                                <form>
+                                <form id="signupform" onSubmit={handleSubmitRegister}>
                                     <div className="sign-up-form">
                                         <div className="group">
                                             <label for="user" className="label">Username</label>
-                                            <input id="user" type="text" className="input" placeholder="Create your Username" onChange={handleUserNameChange} />
+                                            <input name="newuser"
+                                                type="text"
+                                                // onChange={handleNewUserNameChange}
+                                                className="input"
+                                                placeholder="Create your Username" />
                                         </div>
                                         <div className="group">
                                             <label for="pass" className="label">Password</label>
-                                            <input id="pass" type="password" className="input" data-type="password" placeholder="Create your password" onChange={handlePasswordChange} />
+                                            <input
+                                                name="newpass"
+                                                // onChange={handleNewPasswordChange}
+                                                type="password"
+                                                className="input"
+                                                data-type="password"
+                                                placeholder="Create your password" />
                                         </div>
                                         <div className="group">
                                             <label for="pass" className="label">Repeat Password</label>
-                                            <input id="pass" type="password" className="input" data-type="password" placeholder="Repeat your password" onChange={handleRepeatPassword} />
+                                            <input
+                                                name="repass"
+                                                type="password"
+                                                className="input"
+                                                // onChange={handleRePasswordChange}
+                                                data-type="password"
+                                                placeholder="Repeat your password" />
                                         </div>
-                                        <div className="group">
-                                            <label for="pass" className="label">Email Address</label>
-                                            <input id="pass" type="text" className="input" placeholder="Enter your email address" onChange={handleEmailChange} />
-                                        </div>
-                                        <div className="group"> <input type="submit" className="button" value="Sign Up" onSubmit={handleSubmitRegister} />
+                                        {/* <div className="group">
+                                        <label for="pass" className="label">Email Address</label>
+                                        <input 
+                                        id="pass" 
+                                        type="text" 
+                                        className="input" 
+                                        placeholder="Enter your email address" />
+                                    </div> */}
+                                        <div className="group"> <input type="submit" className="button" value="Sign Up" />
                                         </div>
                                         <div className="hr"></div>
-                                        <div className="foot"> <label for="tab-1">Already Member?</label> </div>
+                                        <div className="foot">
+                                            <label for="tab-1">Already Member?</label> </div>
                                     </div>
                                 </form>
                             </div>
