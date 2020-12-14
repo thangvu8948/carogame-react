@@ -33,6 +33,12 @@ class AccountService {
         return JSON.parse(localStorage.getItem('user'));
     }
 
+    getCurrentUserInfo() {
+        var tokens = this.getCurrentUser().split(".");
+        const data =JSON.parse(atob(tokens[1]));
+        return data;
+    }
+
     // async auth() {
     //     return await fetch(API_URL + 'auth', { headers: authHeader() });
     // }
