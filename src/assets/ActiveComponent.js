@@ -10,7 +10,7 @@ var ChatComponent = (props) => {
 };
 
 var ChatList = (props) => {
-  return <ul>{props.people.map((person) => <li>{person}</li>)}</ul>;
+  return <ul>{props.people.map((person) => <li>{JSON.parse(person).Username}</li>)}</ul>;
 };
 
 

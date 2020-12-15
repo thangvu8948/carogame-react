@@ -1,24 +1,40 @@
 import React, { useEffect, useState } from "react";
 import ChatComponent from "../assets/ActiveComponent";
 import io from 'socket.io-client';
-import accountService from "../services/account.service";
+import AccountService from "../services/account.service";
+import {socket} from "../App";
 // import "../assets/login.css";
-const socket = io();
 export default function Homepage() {
-    const ENDPOINT = "http://127.0.0.1:1337";
-    const user = accountService.getCurrentUserInfo();
-    const [people, setPeople] = useState([]);
-    useEffect(() => {
-        const socket = io(ENDPOINT);
-        console.log(user)
-        socket.emit("so_connect", (user.ID, user.Username))
-        socket.on("FromAPI", data => {
-          setPeople(JSON.parse(data))
-        });
-      }, []);
-    return (
-        <div className="container">
-           <ChatComponent people={people}/>
-        </div>
-    );
+  const user = AccountService.getCurrentUserInfo();
+  const [people, setPeople] = useState([]);
+  useEffect(() => {
+    socket.on("user-online", data => {
+      console.log(JSON.parse(data))
+      setPeople(JSON.parse(data))
+    });
+
+    socket.on("caro-game", msg => {
+      window.location.href = "/game/123"
+    })
+  }, [people]);
+
+  const ReceiveHandler = (msg) => {
+    // switch(msg.type) {
+    //   case 'reque'
+    // }
+    return true;
+  }
+
+  const NewRoomRequestHandler = () => {
+    socket.emit("caro-game", JSON.stringify({type: "request-new-room", player: user}));
+    window.location.href = "/game/123"
+
+  }
+
+  return (
+    <div className="container">
+      <button type="button" class="btn btn-primary" onClick={NewRoomRequestHandler}>New Room</button>
+      <ChatComponent people={people} />
+    </div>
+  );
 }
