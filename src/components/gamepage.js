@@ -184,23 +184,17 @@ export default function Gamepage() {
   const [isInit, setIsInit] = useState(false);
   const temp = ["X", "O"];
   const [q, setQ] = useState(0);
-  const [end, setEnd] = useState(false);
-  const [square, setSquare] = useState(Array(20 * 30).fill(null));
+  const [square, setSquare] = useState(Array(row * col).fill(null));
+  const [isMyBall, setIsMyBall] = useState(false);
   const handleClick = (i) => {
-    const newsquare = [...square];
-    if (newsquare[i] == null) {
-      newsquare[i] = temp[q];
-    }
-    setQ(1 - q);
-    setSquare(newsquare);
-    let [res, turn] = checkWin(newsquare, i);
+    MakeAMove(i);
+    //let cell = { x: Math.floor(i / col), y: i % col };
+    const [res, turn] = checkWin(square, i);
     if (res) {
       alert(`${turn} win`);
-      setEnd(res);
     }
-    console.log(newsquare);
-    let cell = { x: Math.floor(i / col), y: i % col };
   };
+
   useEffect(() => {
     if (!isInit) {
       socket.emit(
@@ -226,6 +220,8 @@ export default function Gamepage() {
           break;
         case "room-no-valid":
           RoomNoValidHandler(msg);
+        case "moved":
+          MovedHandler(msg);
       }
     });
   }, []);
@@ -245,6 +241,38 @@ export default function Gamepage() {
 
   function RoomNoValidHandler(msg) {
     alert("this room is not valid");
+  }
+
+  function MovedHandler(msg) {
+    console.log("moved");
+    const move = msg.data.board;
+    MakeAMove2(move);
+  }
+
+  function MakeAMove2(i) {
+    setQ(1 - q);
+    setSquare(i);
+    console.log(square);
+  }
+
+  function MakeAMove(i) {
+    let newsquare = square.map((x) => x);
+
+    if (!newsquare[i]) {
+      newsquare[i] = temp[q];
+    }
+    setQ(1 - q);
+    setSquare(newsquare);
+    setTimeout(() => {
+      socket.emit(
+        "caro-game",
+        JSON.stringify({
+          type: "moving",
+          data: { gameId: id, move: i, board: newsquare, player: user },
+        })
+      );
+      console.log(square);
+    }, 500);
   }
 
   return (
