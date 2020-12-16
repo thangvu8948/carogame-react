@@ -186,12 +186,14 @@ export default function Gamepage() {
   const [q, setQ] = useState(0);
   const [square, setSquare] = useState(Array(row * col).fill(null));
   const [isMyBall, setIsMyBall] = useState(false);
+  const [end, setEnd] = useState(false);
   const handleClick = (i) => {
     MakeAMove(i);
     //let cell = { x: Math.floor(i / col), y: i % col };
     const [res, turn] = checkWin(square, i);
     if (res) {
       alert(`${turn} win`);
+      setEnd(true);
     }
   };
 
@@ -279,13 +281,15 @@ export default function Gamepage() {
     <div className="row">
       <div className="col-md-8">
         <div className="game">
-          <div className="game-board">
-            <Board
-              row={row}
-              col={col}
-              square={square}
-              onClick={(i) => handleClick(i)}
-            />
+          <div className={`game-board `}>
+            <div className={`${end ? "no-click" : ""}`}>
+              <Board
+                row={row}
+                col={col}
+                square={square}
+                onClick={(i) => handleClick(i)}
+              />
+            </div>
           </div>
         </div>
       </div>

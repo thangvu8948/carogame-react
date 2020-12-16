@@ -22,6 +22,10 @@ ul {
     font-weight: bold;
 }
 
+.no-click {
+    pointer-events: none;
+}
+
 .statusDraw {
     color: #999;
     font-weight: bold;
