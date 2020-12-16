@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ChatComponent from "../assets/ActiveComponent";
 import io from 'socket.io-client';
 import AccountService from "../services/account.service";
-import {socket} from "../App";
+import { socket } from "../App";
 // import "../assets/login.css";
 export default function Homepage() {
   const user = AccountService.getCurrentUserInfo();
@@ -14,21 +14,30 @@ export default function Homepage() {
     });
 
     socket.on("caro-game", msg => {
-      window.location.href = "/game/123"
+      ReceiveHandler(JSON.parse(msg));
     })
   }, [people]);
 
+  function RequestRoomResponseHandler(msg) {
+    console.log(msg.data.isSuccess)
+    if (msg.data.isSuccess) {
+      window.location.href = `/game/${msg.data.game.id}`
+    } else {
+      alert("Create room failed");
+    }
+  }
+
   const ReceiveHandler = (msg) => {
-    // switch(msg.type) {
-    //   case 'reque'
-    // }
+    console.log(msg)
+    switch (msg.type) {
+      case 'request-new-room-result':
+        RequestRoomResponseHandler(msg);
+    }
     return true;
   }
 
   const NewRoomRequestHandler = () => {
-    socket.emit("caro-game", JSON.stringify({type: "request-new-room", player: user}));
-    window.location.href = "/game/123"
-
+    socket.emit("caro-game", JSON.stringify({ type: "request-new-room", player: user }));
   }
 
   return (
