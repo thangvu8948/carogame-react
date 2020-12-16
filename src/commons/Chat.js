@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Message from "./Message";
 import "../assets/chat.css";
+import { socket } from "../App";
+import { useParams } from "react-router-dom";
 const Chat = (props) => {
+  const { id } = useParams()
   const [msg, setMsg] = useState("");
   const [messages, setMessages] = useState([]);
+  const [canChat, setCanChat] = useState(false);
   let msgsample = { mine: true, msg: "Hello1", time: "12:00", Username: "aaa" };
   let msgsample1 = {
     mine: false,
@@ -11,27 +15,64 @@ const Chat = (props) => {
     time: "14:00",
     Username: "bbb",
   };
+
+  useEffect(() => {
+    socket.on("caro-game", (msg) => {
+      msg = JSON.parse(msg);
+      switch (msg.type) {
+        case "received-message":
+          ReceiveMessageHandler(msg);
+      }
+    })
+  }, [messages])
+
+  function ReceiveMessageHandler(msg) {
+    const message = msg.data.message;
+    console.log("message" + message)
+    const d = new Date();
+    let obj = Object.assign({}, msgsample1, {
+      msg: message,
+      time: d.toLocaleTimeString() + " | Today",
+    });
+    AddMessage(obj, false);
+  }
   // _messages.push(msgsample);
   // _messages.push(msgsample1);
   const handleSend = (event) => {
     event.preventDefault();
+    if (!msg || msg.length === 0) {
+      return;
+    }
     const d = new Date();
     let obj = Object.assign({}, msgsample, {
       msg: msg,
       time: d.toLocaleTimeString() + " | Today",
     });
-    let t = [...messages];
-    t.push(obj);
+
+    socket.emit("caro-game", JSON.stringify({ type: "send-message", data: { gameId: id, message: msg } }));
+
+    AddMessage(obj, true);
+  };
+
+  function AddMessage(msgObj, isMine) {
+    console.log(messages);
+    let t = [...messages.slice(-10)];
+    t.push(msgObj);
     console.log(t);
     setMessages(t);
-    setMsg("");
-  };
+    if (isMine) {
+      setMsg("");
+    }
+
+   
+  }
+
   const handleMsgChange = (event) => {
     setMsg(event.target.value);
   };
   return (
     <div className="mesgs">
-      <div className="msg_history">
+      <div id="chat-box" className="msg_history">
         {messages.map((item) => (
           <Message
             mine={item.mine}
