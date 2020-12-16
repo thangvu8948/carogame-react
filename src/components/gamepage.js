@@ -186,15 +186,10 @@ export default function Gamepage() {
   const [q, setQ] = useState(0);
   const [square, setSquare] = useState(Array(row * col).fill(null));
   const [isMyBall, setIsMyBall] = useState(false);
+  const [isValidRoom, setIsValidRoom] =  useState(true);
   const [end, setEnd] = useState(false);
   const handleClick = (i) => {
     MakeAMove(i);
-    //let cell = { x: Math.floor(i / col), y: i % col };
-    const [res, turn] = checkWin(square, i);
-    if (res) {
-      alert(`${turn} win`);
-      setEnd(true);
-    }
   };
 
   useEffect(() => {
@@ -222,8 +217,10 @@ export default function Gamepage() {
           break;
         case "room-no-valid":
           RoomNoValidHandler(msg);
+          break;
         case "moved":
           MovedHandler(msg);
+          break;
       }
     });
   }, []);
@@ -242,19 +239,27 @@ export default function Gamepage() {
   }
 
   function RoomNoValidHandler(msg) {
-    alert("this room is not valid");
+    setIsValidRoom(false);
   }
 
   function MovedHandler(msg) {
     console.log("moved");
-    const move = msg.data.board;
-    MakeAMove2(move);
+    const board = msg.data.board;
+    const move = msg.data.move;
+    MakeAMove2(board, move);
   }
 
-  function MakeAMove2(i) {
+  function MakeAMove2(board, move) {
     setQ(1 - q);
-    setSquare(i);
-    console.log(square);
+    setSquare(board);
+    setTimeout(() => {
+      const [res, turn] = checkWin(board, move);
+      if (res) {
+        alert(`${turn} win`);
+        setEnd(true);
+      }
+    }, 100)
+
   }
 
   function MakeAMove(i) {
@@ -274,31 +279,41 @@ export default function Gamepage() {
         })
       );
       console.log(square);
-    }, 500);
+      const [res, turn] = checkWin(newsquare, i);
+      if (res) {
+        alert(`${turn} win`);
+        setEnd(true);
+      }
+    }, 100);
   }
 
   return (
-    <div className="row">
-      <div className="col-md-8">
-        <div className="game">
-          <div className={`game-board `}>
-            <div className={`${end ? "no-click" : ""}`}>
-              <Board
-                row={row}
-                col={col}
-                square={square}
-                onClick={(i) => handleClick(i)}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="col-md-4">
-        <div className="game-board">
-          <h3>Message</h3>
-          <Chat></Chat>
-        </div>
-      </div>
-    </div>
+    <>
+    {isValidRoom ?  
+     <div className="row">
+     <div className="col-md-8">
+       <div className="game">
+         <div className={`game-board `}>
+           <div className={`${end ? "no-click" : ""}`}>
+             <Board
+               row={row}
+               col={col}
+               square={square}
+               onClick={(i) => handleClick(i)}
+             />
+           </div>
+         </div>
+       </div>
+     </div>
+     <div className="col-md-4">
+       <div className="game-board">
+         <h3>Message</h3>
+         <Chat></Chat>
+       </div>
+     </div>
+   </div> :
+   <div>Room ID is invalid</div>}
+   
+    </>
   );
 }
