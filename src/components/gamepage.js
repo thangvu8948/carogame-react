@@ -182,12 +182,15 @@ export default function Gamepage() {
   const { id } = useParams();
   const user = AccountService.getCurrentUserInfo();
   const [isInit, setIsInit] = useState(false);
-  const temp = ["X", "O"];
+  const temp = ["", "X", "O"];
   const [q, setQ] = useState(0);
   const [square, setSquare] = useState(Array(row * col).fill(null));
   const [isMyBall, setIsMyBall] = useState(false);
-  const [isValidRoom, setIsValidRoom] =  useState(true);
-  const [end, setEnd] = useState(false);
+  const [isValidRoom, setIsValidRoom] = useState(true);
+  const [end, setEnd] = useState(true);
+  const [players, setPlayers] = useState([]);
+  const [isReady, setIsReady] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const handleClick = (i) => {
     MakeAMove(i);
   };
@@ -203,6 +206,9 @@ export default function Gamepage() {
       );
       setIsInit(true);
     }
+  }, [])
+
+  useEffect(() => {
     socket.on("caro-game", (msg) => {
       msg = JSON.parse(msg);
       switch (msg.type) {
@@ -219,101 +225,211 @@ export default function Gamepage() {
           RoomNoValidHandler(msg);
           break;
         case "moved":
+          //console.log("moved abc ");
           MovedHandler(msg);
+          break;
+        case "moved-guest":
+          MovedGuestHandler(msg);
+          break;
+        case "player-existed":
+          PlayerExisted(msg);
+          break;
+        case "player-ready":
+          PlayerReadyHandler(msg);
+          break;
+        case "game-start":
+          GameStartHandler(msg);
+          break;
+        case "game-start-for-players":
+          GameStartForPlayers(msg);
+          break;
+        case "game-end":
+          GameEndHandler(msg);
+          break;
+        case "win-game":
+          WinGameHandler(msg);
+          break;
+        case "lose-game":
+          LoseGameHandler(msg);
           break;
       }
     });
-  }, []);
+    return (() => {
+      socket.off("caro-game")
+    })
+  }, [end, isReady, isPlaying]);
 
   function YouJoinedGameHandler(msg) {
-    alert("you joined");
+    setPlayers(msg.data.players);
   }
 
   function PlayerJoinedGameHandler(msg) {
     console.log(msg);
-    alert(msg.data.player.Username + " joined");
+    setPlayers(msg.data.players);
   }
 
   function PlayerLeftGameHandler(msg) {
-    alert("player left");
+    //alert("player left");
+    alert (msg.data.player.name + " left game.");
+    setPlayers(msg.data.players);
   }
 
   function RoomNoValidHandler(msg) {
     setIsValidRoom(false);
   }
 
-  function MovedHandler(msg) {
-    console.log("moved");
-    const board = msg.data.board;
-    const move = msg.data.move;
-    MakeAMove2(board, move);
+  function PlayerExisted(msg) {
+    alert("Player existed")
   }
 
-  function MakeAMove2(board, move) {
-    setQ(1 - q);
-    setSquare(board);
-    setTimeout(() => {
-      const [res, turn] = checkWin(board, move);
-      if (res) {
-        alert(`${turn} win`);
-        setEnd(true);
-      }
-    }, 100)
+  function PlayerReadyHandler(msg) {
+    setPlayers(msg.data.players);
+  }
 
+  function MovedHandler(msg) {
+    console.log("moved");
+    //const board = msg.data.board;
+    const sign = msg.data.sign;
+    const move = msg.data.move;
+    MakeAMove2(move, sign);
+  }
+
+  function MovedGuestHandler(msg) {
+    const board = msg.data.board;
+    setSquare(square => [...board]);
+  }
+  function MakeAMove2(move, sign) {
+    //setSquare(board);
+    //let newsquare = square.map((x) => x);
+    let newsquare = [...square];
+    newsquare[move] = sign;
+    //console.log(newsquare)
+    console.log("change status");
+    setSquare(square => [...newsquare]);
+    if (isReady) {
+      setEnd(false);
+    }
+    console.log(isReady);
+    console.log(end);
+    // setTimeout(() => {
+    //   const [res, turn] = checkWin(board, move);
+    //   if (res) {
+    //     alert(`${turn} win`)
+    //     setEnd(true);
+    //   }
+    // }, 10)
   }
 
   function MakeAMove(i) {
-    let newsquare = square.map((x) => x);
+    let newsquare = [...square];
 
     if (!newsquare[i]) {
       newsquare[i] = temp[q];
-    }
-    setQ(1 - q);
-    setSquare(newsquare);
-    setTimeout(() => {
+      setSquare(newsquare);
+      setEnd(true);
+
       socket.emit(
         "caro-game",
         JSON.stringify({
           type: "moving",
-          data: { gameId: id, move: i, board: newsquare, player: user },
+          data: { gameId: id, move: i, board: newsquare, player: user, sign: temp[q] },
         })
       );
-      console.log(square);
-      const [res, turn] = checkWin(newsquare, i);
-      if (res) {
-        alert(`${turn} win`);
-        setEnd(true);
-      }
-    }, 100);
+    }
+
+    //console.log(square);
+    //const [res, turn] = checkWin(newsquare, i);
+    // if (res) {
+    //   alert(`${turn} win`);
+    //   setEnd(true);
+    // }
   }
 
+  function ReadyHandler(msg) {
+    if (!isReady && !isPlaying) {
+      setIsReady(true);
+      socket.emit('caro-game', JSON.stringify({ type: "ready", data: { gameId: id, player: user } }));
+    }
+    console.log(isReady);
+  }
+
+  const GameStartHandler = (msg) => {
+    console.log("start game")
+    setIsPlaying(true);
+    const newBoard = new Array(row * col).fill(null);
+    setSquare(square.fill(null));
+  }
+
+  const GameStartForPlayers = (msg) => {
+    let ownedBall = msg.data.ball;
+    
+    if (ownedBall.id == user.ID) {
+      setQ(1);
+      setEnd(false);
+    } else {
+      setQ(2);
+      setEnd(true)
+    }
+  }
+
+  const GameEndHandler = (msg) => {
+    console.log("endgame")
+    setEnd(true);
+    setIsReady(false);
+    setIsPlaying(false);
+  }
+
+  const WinGameHandler = (msg) => {
+    alert("You win");
+  }
+
+  const LoseGameHandler = (msg) => {
+    alert ("You lose");
+  }
   return (
     <>
-    {isValidRoom ?  
-     <div className="row">
-     <div className="col-md-8">
-       <div className="game">
-         <div className={`game-board `}>
-           <div className={`${end ? "no-click" : ""}`}>
-             <Board
-               row={row}
-               col={col}
-               square={square}
-               onClick={(i) => handleClick(i)}
-             />
-           </div>
-         </div>
-       </div>
-     </div>
-     <div className="col-md-4">
-       <div className="game-board">
-         <h3>Message</h3>
-         <Chat></Chat>
-       </div>
-     </div>
-   </div> :
-   <div>Room ID is invalid</div>}
-   
+      {isValidRoom ?
+        <div className="row">
+          <div className="col-md-8">
+            <div className="game">
+              <div className={`game-board `}>
+                <div className={`${end ? "no-click" : ""}`}>
+                  <Board
+                    row={row}
+                    col={col}
+                    square={square}
+                    onClick={(i) => handleClick(i)}
+                  />
+                </div>
+              </div>
+
+            </div>
+            <button type="button" onClick={ReadyHandler} class={!isReady ? "btn btn-primary" : "btn btn-secondary"} disabled={isPlaying || isReady}>Ready</button>
+            <div>
+              Player list
+                <ol>
+                {players.map((player) => {
+                  return (
+                    <li>
+                      {player.ready ? (
+                        <b>{player.name}</b>
+                      ) : (
+                          <p>{player.name}</p>
+                        )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="game-board">
+              <h3>Message</h3>
+              <Chat></Chat>
+            </div>
+          </div>
+        </div> :
+        <div>Room ID is invalid</div>}
     </>
   );
 }
