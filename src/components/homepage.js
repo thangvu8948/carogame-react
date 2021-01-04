@@ -3,7 +3,11 @@ import ChatComponent from "../assets/ActiveComponent";
 import io from 'socket.io-client';
 import AccountService from "../services/account.service";
 import { socket } from "../App";
+import RoomCard from "../commons/RoomCard";
+import RoomList from "../commons/RoomList";
 // import "../assets/login.css";
+import "../assets/homepage.css";
+
 export default function Homepage() {
   const user = AccountService.getCurrentUserInfo();
   const [people, setPeople] = useState([]);
@@ -42,7 +46,9 @@ export default function Homepage() {
 
   return (
     <div className="container">
-      <button type="button" class="btn btn-primary" onClick={NewRoomRequestHandler}>New Room</button>
+       <button type="button" class="btn btn-primary btn-new-room" onClick={NewRoomRequestHandler}>New Room</button>
+      <RoomList/>
+     
       <ChatComponent people={people} />
     </div>
   );
