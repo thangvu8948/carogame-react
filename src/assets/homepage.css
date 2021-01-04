@@ -50,3 +50,9 @@ body {
 .btn-new-room {
     margin: 5px 10px;
 }
+
+.invalid {
+    padding: 5px 5px;
+    font-size: small;
+    color: red
+}
