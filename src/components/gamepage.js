@@ -179,6 +179,8 @@ function isSubDiagCheck(square, i, j) {
   return countTop + countDown == 5;
 }
 export default function Gamepage() {
+  const [row, setRow] = useState(20);
+  const [col, setCol] = useState(30);
   const { id } = useParams();
   const user = AccountService.getCurrentUserInfo();
   const [isInit, setIsInit] = useState(false);
@@ -261,6 +263,9 @@ export default function Gamepage() {
 
   function YouJoinedGameHandler(msg) {
     setPlayers(msg.data.players);
+    const game = msg.data.game;
+    setRow(game.row);
+    setCol(game.col);
   }
 
   function PlayerJoinedGameHandler(msg) {
