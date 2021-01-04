@@ -21,10 +21,15 @@ const Chat = (props) => {
       msg = JSON.parse(msg);
       switch (msg.type) {
         case "received-message":
+          console.log(messages);
           ReceiveMessageHandler(msg);
+          break;
       }
     })
-  }, [messages])
+    return (() => {
+      socket.off("caro-game")
+    })
+  }, [])
 
   function ReceiveMessageHandler(msg) {
     const message = msg.data.message;
@@ -49,22 +54,22 @@ const Chat = (props) => {
       time: d.toLocaleTimeString() + " | Today",
     });
 
-    socket.emit("caro-game", JSON.stringify({ type: "send-message", data: { gameId: id, message: msg } }));
-
+    //setTimeout(() => {
+      socket.emit("caro-game", JSON.stringify({ type: "send-message", data: { gameId: id, message: msg } }));
+    //},100)
+    
     AddMessage(obj, true);
   };
 
   function AddMessage(msgObj, isMine) {
-    console.log(messages);
-    let t = [...messages.slice(-10)];
-    t.push(msgObj);
-    console.log(t);
-    setMessages(t);
+    // console.log(messages);
+    // let t = [...messages];
+    // t.push(msgObj);
+    setMessages(messages => [...messages, msgObj]);
+    console.log(messages)
     if (isMine) {
       setMsg("");
     }
-
-   
   }
 
   const handleMsgChange = (event) => {
