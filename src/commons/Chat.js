@@ -17,7 +17,7 @@ const Chat = (props) => {
   };
 
   useEffect(() => {
-    socket.on("caro-game", (msg) => {
+    socket.on("caro-game-chat", (msg) => {
       msg = JSON.parse(msg);
       switch (msg.type) {
         case "received-message":
@@ -27,7 +27,7 @@ const Chat = (props) => {
       }
     })
     return (() => {
-      socket.off("caro-game")
+      socket.off("caro-game-chat")
     })
   }, [])
 
@@ -54,6 +54,7 @@ const Chat = (props) => {
       time: d.toLocaleTimeString() + " | Today",
     });
 
+    console.log('sent');
     //setTimeout(() => {
       socket.emit("caro-game", JSON.stringify({ type: "send-message", data: { gameId: id, message: msg } }));
     //},100)
@@ -70,6 +71,7 @@ const Chat = (props) => {
     if (isMine) {
       setMsg("");
     }
+    //element.scrollTop = element.scrollHeight;
   }
 
   const handleMsgChange = (event) => {
