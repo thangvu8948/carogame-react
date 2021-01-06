@@ -3,12 +3,14 @@ import Message from "./Message";
 import "../assets/chat.css";
 import { socket } from "../App";
 import { useParams } from "react-router-dom";
+import AccountService from "../services/account.service";
 const Chat = (props) => {
   const { id } = useParams()
   const [msg, setMsg] = useState("");
   const [messages, setMessages] = useState([]);
   const [canChat, setCanChat] = useState(false);
-  let msgsample = { mine: true, msg: "Hello1", time: "12:00", Username: "aaa" };
+  const user = AccountService.getCurrentUserInfo();
+  let msgsample = { mine: true, msg: "Hello1", time: "12:00", SenderUsername: "aaa", SenderId: user.ID };
   let msgsample1 = {
     mine: false,
     msg: "Hello2",
@@ -36,6 +38,8 @@ const Chat = (props) => {
     console.log("message" + message)
     const d = new Date();
     let obj = Object.assign({}, msgsample1, {
+      SenderId: msg.data.SenderId,
+      SenderUsername: msg.data.SenderUsername,
       msg: message,
       time: d.toLocaleTimeString() + " | Today",
     });
@@ -56,7 +60,7 @@ const Chat = (props) => {
 
     console.log('sent');
     //setTimeout(() => {
-      socket.emit("caro-game", JSON.stringify({ type: "send-message", data: { gameId: id, message: msg } }));
+      socket.emit("caro-game", JSON.stringify({ type: "send-message", data: { gameId: id, message: msg, senderId: user.ID, senderUsername: user.Username } }));
     //},100)
     
     AddMessage(obj, true);
