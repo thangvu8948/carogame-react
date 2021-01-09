@@ -3,15 +3,20 @@ import { Component } from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import io from 'socket.io-client';
 import "./App.css";
+import { Button, Navbar, Nav, NavItem, NavDropdown, MenuItem, Modal } from 'react-bootstrap';
 import Homepage from "./components/homepage";
-import Gamepage from "./components/gamepage"
+import Gamepage from "./components/gamepage";
+import InviteModal from "./commons/InviteModal";
 import Login from "./components/login";
 import AccountService from "./services/account.service";
 export const ENDPOINT = "http://127.0.0.1:1337";
 export const socket = io(ENDPOINT);
 
-function App() {
+function App(props) {
   const [currentUser, setCurrentUser] = useState(undefined);
+  const [showInvitation, setShowInvitation] = useState(false);
+  const [inGame, setInGame] = useState(false);
+  const [invitationInfo, setInvitationInfo] = useState(null);
   useEffect(() => {
     const user = AccountService.getCurrentUser();
     if (user) {
@@ -21,46 +26,94 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    socket.on("invite-game", (msg) => {
+      ReceiveHandler(JSON.parse(msg));
+    });
+    return (() => {
+      socket.off("invite-game")
+    })
+  }, [inGame, showInvitation])
+
+  const setIsInGame = (isInGame) => {
+    console.log("in game set " + isInGame);
+    setInGame(isInGame);
+  }
+
+  const ReceiveHandler = (msg) => {
+    switch (msg.type) {
+      case "invite-to-game":
+        ReceiveInvitation(msg);
+        break;
+      case "invite-accepted":
+        InviteAcceptedHandler(msg);
+        break;
+    }
+  }
+
+  const InviteAcceptedHandler = (msg) => {
+    const us = msg.data.user;
+    window.location.href = `/game/${msg.data.roomId}`;
+  }
+
+  const ReceiveInvitation = (msg) => {
+    console.log("receive invite");
+    console.log(inGame);
+    if (!inGame) {
+      if (!showInvitation) {
+        console.log("show:" + showInvitation)
+        setInvitationInfo(msg);
+        setShowInvitation(true);
+      }
+    } else {
+      console.log("player is in game.")
+    }
+  }
+
+  const handleCloseInvitation = () => {
+    setShowInvitation(false);
+  }
   return (
     //<Homepage/>
+    <>
 
-
-    <Router>
-      <div className="App">
-          <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="#">Navbar</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
-              <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-                <li class="nav-item active">
-                  <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">Link</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
-                </li>
-              </ul>
-              <form class="form-inline my-2 my-lg-0">
-                <input class="form-control mr-sm-2" type="search" placeholder="Search" />
-                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-              </form>
-            </div>
-          </nav>
+      <Router>
+        <div className="App">
+          <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
+            <Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand>
+            <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+            <Navbar.Collapse id="responsive-navbar-nav">
+              <Nav className="mr-auto">
+                <Nav.Link href="#features">Features</Nav.Link>
+                <Nav.Link href="#pricing">Pricing</Nav.Link>
+                <NavDropdown title="Dropdown" id="collasible-nav-dropdown">
+                  <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
+                  <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>
+                  <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item href="#action/3.4">Separated link</NavDropdown.Item>
+                </NavDropdown>
+              </Nav>
+              <Nav>
+                <Nav.Link href="#deets">More deets</Nav.Link>
+                <Nav.Link eventKey={2} href="#memes">
+                  Dank memes
+      </Nav.Link>
+              </Nav>
+            </Navbar.Collapse>
+          </Navbar>
         </div>
-      
-      <Switch>
-        <Route exact path="/" component={currentUser ? Homepage : Login} />
-        <Route path="/caro" component={Homepage} />
-        <Route path="/game/:id" component={currentUser ? Gamepage : Login} />
-      </Switch>
+        <InviteModal show={showInvitation} handleClose={handleCloseInvitation} invitationInfo={invitationInfo}/>
+
+        <Switch>
+          <Route exact path="/" component={currentUser ? Homepage : Login} />
+          <Route path="/caro" component={Homepage} />
+          <Route path="/game/:id" render={currentUser ? () => <Gamepage fInGame={setIsInGame} /> : () => Login} />
+        </Switch>
 
 
-    </Router>
+      </Router>
+    </>
   );
 }
 
