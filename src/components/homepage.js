@@ -101,6 +101,9 @@ export default function Homepage() {
       }
     }
   }
+  const QuickGameHandler = () => {
+    socket.emit('quick-game', JSON.stringify({type: "find-game", data: {user: user}}));
+  }
   const handleCloseNewRoomModal = () => {
     setShowNewRoomModal(false);
   }
@@ -253,6 +256,7 @@ export default function Homepage() {
 
       <button type="button" class="btn btn-primary btn-new-room" onClick={NewRoomRequestHandler}>New Room</button>
       <button type="button" class="btn btn-primary btn-new-room" onClick={EnterRoomIDHandler}>Enter Room ID</button>
+      <button type="button" class="btn btn-primary btn-new-room" onClick={QuickGameHandler}>Quick Game</button>
 
       {/* {CreateNewRoomModal()} */}
 
