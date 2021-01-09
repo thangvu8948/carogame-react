@@ -178,7 +178,7 @@ function isSubDiagCheck(square, i, j) {
 
   return countTop + countDown == 5;
 }
-export default function Gamepage() {
+export default function Gamepage(props) {
   const [row, setRow] = useState(20);
   const [col, setCol] = useState(30);
   const { id } = useParams();
@@ -285,6 +285,7 @@ export default function Gamepage() {
 
   function PlayerExisted(msg) {
     alert("Player existed")
+    window.location.href = "/";
   }
 
   function PlayerReadyHandler(msg) {
@@ -363,6 +364,7 @@ export default function Gamepage() {
     setIsPlaying(true);
     const newBoard = new Array(row * col).fill(null);
     setSquare(square.fill(null));
+    props.fInGame(true);
   }
 
   const GameStartForPlayers = (msg) => {
@@ -382,6 +384,7 @@ export default function Gamepage() {
     setEnd(true);
     setIsReady(false);
     setIsPlaying(false);
+    props.fInGame(false);
   }
 
   const WinGameHandler = (msg) => {

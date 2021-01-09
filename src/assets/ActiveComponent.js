@@ -1,19 +1,26 @@
 import React from "react";
-
+import "../assets/homepage.css"
+import PeopleRow from "../commons/PeopleRow";
+import accountService from "../services/account.service";
 var ChatComponent = (props) => {
+  const user = accountService.getCurrentUserInfo();
+  const people = props.people.filter((value, idx) => JSON.parse(value).ID !== user.ID) ?? [];
   return (
     <div>
-      <h5>List of active people</h5>
-      <ChatList people={props.people} />
+      <h5>Online</h5>
+      <ChatList people={people} />
     </div>
   );
 };
 
 var ChatList = (props) => {
+  const inviteHandler = () => {
+
+  }
   return (
     <ul>
       {props.people.map((person) => (
-        <li>{JSON.parse(person).Username}</li>
+       <PeopleRow person={person}/>
       ))}
     </ul>
   );

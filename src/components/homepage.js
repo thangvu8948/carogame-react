@@ -6,7 +6,7 @@ import { socket } from "../App";
 import RoomCard from "../commons/RoomCard";
 import RoomList from "../commons/RoomList";
 import Modal from 'react-bootstrap/Modal';
-
+import "../index.css";
 // import "../assets/login.css";
 import "../assets/homepage.css";
 export const BoardSize = [
@@ -256,9 +256,15 @@ export default function Homepage() {
 
       {/* {CreateNewRoomModal()} */}
 
-      <RoomList rooms={games} />
-
-      <ChatComponent people={people} />
+      <div className="row">
+        
+        <div className="col-lg-9 col-md-12 col-sm-12 mx-auto d-flex justify-content-center col-12">
+          <RoomList rooms={games} />
+        </div>
+        <div className="col-lg-3 col-md-12 col-sm-12">
+          <ChatComponent people={people} />
+        </div>
+      </div>
     </div>
   );
 }

@@ -12,6 +12,7 @@ const RoomCard = (props) => {
         <div className="room-info">
             <div className="room-body">
                 <div>Board size: {room.row}x{room.col}</div>
+                <div>Status: {room.IsPlaying ? "Playing" : "Waiting"}</div>
                 <div>Player no in room: {room.players.length}</div>
             </div>
             <div className="room-card-footer">
