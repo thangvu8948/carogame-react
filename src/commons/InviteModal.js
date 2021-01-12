@@ -2,8 +2,12 @@ import React, { useState,useEffect } from "react";
 import { Button, Modal } from 'react-bootstrap';
 import { socket } from "../App";
 import AccountService from "../services/account.service";
-
-
+import {connect} from "react-redux"
+const mapStateToProps = state => {
+    console.log(state);
+    return { isFindingQuickGame: state.isFindingQuickGame };
+  };
+  
 const InviteModal = (props) => {
 
     const [loading, setLoading] = useState(false);
@@ -17,9 +21,11 @@ const InviteModal = (props) => {
 
     const deniedHandler = () => {
         props.handleClose();
+        const user = AccountService.getCurrentUserInfo();
+        socket.emit('invite-game', JSON.stringify({type: "denied", data: {user: user, sourceSK: invitationInfo.data.senderSK}}));
         invitationInfo = null;
     }
-    return <Modal show={props.show} onHide={props.handleClose}>
+    return <Modal show={!props.isFindingQuickGame && props.show} onHide={props.handleClose} backdrop="static" keyboard={false}>
         <Modal.Header closeButton>
             <Modal.Title>Invitation</Modal.Title>
         </Modal.Header>
@@ -37,4 +43,4 @@ const InviteModal = (props) => {
         </Modal.Footer>
     </Modal>
 }
-export default InviteModal;
+export default connect(mapStateToProps)(InviteModal);

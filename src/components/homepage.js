@@ -7,14 +7,29 @@ import RoomCard from "../commons/RoomCard";
 import RoomList from "../commons/RoomList";
 import Modal from 'react-bootstrap/Modal';
 import "../index.css";
+import QuickGameModal from "./QuickGameModal"
 // import "../assets/login.css";
 import "../assets/homepage.css";
+import InviteWaitingModal from "./InviteWaitingModal";
+import { finding_off, finding_on } from "../actions";
+import {connect} from "react-redux";
+import { propTypes } from "react-bootstrap/esm/Image";
+
 export const BoardSize = [
   { row: 15, col: 20 },
   { row: 20, col: 30 },
   { row: 30, col: 40 }
 ]
-export default function Homepage() {
+
+
+function mapDispatchToProps(dispatch) {
+  return {
+      finding_on: value => dispatch(finding_on(value))
+  };
+}
+
+
+const Homepage = (props) => {
   const user = AccountService.getCurrentUserInfo();
   const [people, setPeople] = useState([]);
   const [showNewRoomModal, setShowNewRoomModal] = useState(false);
@@ -32,6 +47,8 @@ export default function Homepage() {
   const [isRoomIdValid, setIsRoomIdValid] = useState(true);
   const [isPasswordCorrect, setIsPasswordCorrect] = useState(true);
   const [existed, setExisted] = useState(false);
+  const [isFindingQuickMatch, setIsFindingQuickMatch] = useState(false);
+  //const [isInviting, setIsInviting] = useState(false);
   useEffect(() => {
     socket.on("user-online", data => {
       console.log(JSON.parse(data))
@@ -102,7 +119,8 @@ export default function Homepage() {
     }
   }
   const QuickGameHandler = () => {
-    socket.emit('quick-game', JSON.stringify({type: "find-game", data: {user: user}}));
+    socket.emit('quick-game', JSON.stringify({ type: "find-game", data: { user: user } }));
+    props.finding_on();
   }
   const handleCloseNewRoomModal = () => {
     setShowNewRoomModal(false);
@@ -149,10 +167,15 @@ export default function Homepage() {
     socket.emit("caro-game", JSON.stringify({ type: "request-new-room", data: { player: user, row: BoardSize[size].row, col: BoardSize[size].col, room_name: roomName, public: room_type_idx == 0, password: roomPassword } }));
 
   }
+
+  const closeFindingQuickMatch = () => {
+    setIsFindingQuickMatch(false);
+  }
+
   return (
     <div className="container">
 
-      <Modal show={showNewRoomModal} onHide={handleCloseNewRoomModal}>
+      <Modal show={showNewRoomModal} onHide={handleCloseNewRoomModal} backdrop="static" keyboard={false}>
         <Modal.Header closeButton>
           <Modal.Title>New Room</Modal.Title>
         </Modal.Header>
@@ -253,7 +276,8 @@ export default function Homepage() {
         </Button> */}
         </Modal.Footer>
       </Modal>
-
+      <InviteWaitingModal />
+      <QuickGameModal  />
       <button type="button" class="btn btn-primary btn-new-room" onClick={NewRoomRequestHandler}>New Room</button>
       <button type="button" class="btn btn-primary btn-new-room" onClick={EnterRoomIDHandler}>Enter Room ID</button>
       <button type="button" class="btn btn-primary btn-new-room" onClick={QuickGameHandler}>Quick Game</button>
@@ -261,7 +285,7 @@ export default function Homepage() {
       {/* {CreateNewRoomModal()} */}
 
       <div className="row">
-        
+
         <div className="col-lg-9 col-md-12 col-sm-12 mx-auto d-flex justify-content-center col-12">
           <RoomList rooms={games} />
         </div>
@@ -272,3 +296,5 @@ export default function Homepage() {
     </div>
   );
 }
+
+export default connect(null, mapDispatchToProps)(Homepage);

@@ -2,11 +2,20 @@ import React from "react";
 import { socket } from "../App";
 import "../assets/homepage.css";
 import accountService from "../services/account.service";
+import {connect} from "react-redux";
+import { inviting_on } from "../actions";
+
+function mapDispatchToProps(dispatch) {
+  return {
+    inviting_on: value => dispatch(inviting_on(value))
+  };
+}
+
 const PeopleRow = (props) => {
   const person = props.person;
   const user = accountService.getCurrentUserInfo();
   const inviteHandler = () => {
-    console.log(person);
+    props.inviting_on();
     socket.emit(
       "invite-game",
       JSON.stringify({
@@ -29,4 +38,4 @@ const PeopleRow = (props) => {
   );
 };
 
-export default PeopleRow;
+export default connect(null,mapDispatchToProps)(PeopleRow);
