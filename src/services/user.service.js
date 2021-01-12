@@ -9,6 +9,12 @@ class UserService {
     });
     return res;
   }
+  async getUserByAccountId(id) {
+    const res = await fetch(API_URL + `account/${id}`, {
+      headers: authHeader(),
+    });
+    return res;
+  }
   async ChangeAvatar(id, avatar) {
     const res = await Post(
       API_URL + `${id}/avatar`,
@@ -16,6 +22,15 @@ class UserService {
         avatar: avatar,
       },
 
+      authHeader()
+    );
+    return res;
+  }
+
+  async UpdateProfile(id, accId, name, dob, email, gender) {
+    const res = await Post(
+      API_URL + `${id}/profile`,
+      {Name: name, DOB: dob, Email: email, ID: accId, Gender: gender},
       authHeader()
     );
     return res;
