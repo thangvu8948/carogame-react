@@ -1,6 +1,7 @@
 import authHeader from "../HTTPrequests/auth-header";
 import Post from "../HTTPrequests/Post";
-const API_URL = "http://localhost:1337/user/";
+import {HOST} from "../constants/constant";
+const API_URL = `${HOST}user/`;
 
 class BattleService {
   async getRecentBattles(uid) {
@@ -11,6 +12,12 @@ class BattleService {
   }
   async getBattles(uid) {
     const res = await fetch(API_URL + `/${uid}/battles`, {
+      headers: authHeader(),
+    });
+    return res;
+  }
+  async getBattle(id) {
+    const res = await fetch(API_URL + `${id}/battle`, {
       headers: authHeader(),
     });
     return res;

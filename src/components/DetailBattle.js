@@ -8,6 +8,8 @@ import "../assets/custom.css";
 import { useParams } from "react-router-dom";
 import ChatHistory from "../commons/ChatHistory";
 import { Spinner } from "react-bootstrap";
+import battleService from "../services/battle.service";
+import accountService from "../services/account.service";
 function DetailBattle(props) {
   const divStyle = {
     width: "50%",
@@ -20,6 +22,16 @@ function DetailBattle(props) {
   const [start, setStart] = useState(false);
   const [current, setCurrent] = useState(0);
   const [square, setSquare] = useState(Array(20 * 30).fill(null));
+  const [battleDetail, setBattleDetail] = useState(null);
+  const user = accountService.getCurrentUserInfo();
+  useEffect(async () => {
+    const dt = await battleService.getBattle(id);
+    const res = await dt.json();
+    if (res && res[0]) {
+      console.log(res[0]);
+      setBattleDetail(res[0]);
+    }
+  }, [])
   useEffect(async () => {
     const usrs = await MoveService.getMoves(id);
     const res = await usrs.json();
@@ -83,40 +95,53 @@ function DetailBattle(props) {
       width: `${percent * 100}%`,
     };
   };
+  const renderInfo = () => {
+    if (!battleDetail) return <></>;
+    let yourSign = "";
+    let result = "";
+    if (battleDetail.WinnerID == user.WinnerID) {
+      yourSign = battleDetail.SignOfWinner;
+    } else {
+      yourSign = battleDetail.SignOfWinner == "X" ? "O" : "X";
+    }
 
+    if (battleDetail.IsDraw) {
+      result = "Draw";
+    } else if (battleDetail.WinnerID == user.ID) {
+      result = "You Won";
+    } else {
+      result = "You Lose";
+    }
+    return <form style={{ marginTop: "2rem" }}>
+      <div className="row battleInfo">
+        <div className="col-md-4">
+          <label>Your sign</label>
+        </div>
+        <div className="col-md-4">
+          <p>{yourSign}</p>
+        </div>
+      </div>
+      <div className="row battleInfo">
+        <div className="col-md-4">
+          <label>Result</label>
+        </div>
+        <div className="col-md-4">
+          <p>{result}</p>
+        </div>
+      </div>
+    </form>
+  }
   return (
     <>
       <div className="row">
         <div className="col-lg-8 col-md-12 col-sm-12">
+          {renderInfo()}
           <div className="game">
             <div className={`game-board `}>
               <Board row={20} col={30} square={square} />
             </div>
           </div>
-        </div>
-        <div className="col-lg-4 col-md-8 col-sm-8 mx-auto">
-          <div className="game-board">
-            <h3>Message</h3>
-            {!visible ? (
-              <button
-                type="button"
-                class="btn btn-success"
-                onClick={handleShowMessage}
-              >
-                Show
-              </button>
-            ) : msg == null ? (
-              <Spinner animation="border" />
-            ) : (
-                  <ChatHistory message={msg} disableSent={true} />
-                )}
-          </div>
-        </div>
-      </div>
-      <br />
-      <div className="row">
-        <div className="col-md-8 mx-auto">
-          <div className="text-center">
+          <div className="text-center my-3">
             {start == false ? (
               <button
                 type="button"
@@ -175,6 +200,30 @@ function DetailBattle(props) {
                 </>
               )}
           </div>
+        </div>
+        <div className="col-lg-4 col-md-8 col-sm-8 mx-auto" style={{ maxWidth: "80%" }}>
+          <div className="game-board">
+            <h3>Message</h3>
+            {!visible ? (
+              <button
+                type="button"
+                class="btn btn-success"
+                onClick={handleShowMessage}
+              >
+                Show
+              </button>
+            ) : msg == null ? (
+              <Spinner animation="border" />
+            ) : (
+                  <ChatHistory message={msg} disableSent={true} />
+                )}
+          </div>
+        </div>
+      </div>
+      <br />
+      <div className="row">
+        <div className="col-md-8 mx-auto">
+
         </div>
         <div className="col-md-4"></div>
       </div>
