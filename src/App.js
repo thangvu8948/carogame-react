@@ -9,8 +9,22 @@ import Gamepage from "./components/gamepage";
 import InviteModal from "./commons/InviteModal";
 import Login from "./components/login";
 import AccountService from "./services/account.service";
+import {connect} from "react-redux";
+import { inviting_off } from "./actions";
+import UserInfo from "./components/Proflie";
+import Battle from "./components/Battle";
+import DetailBattle from "./components/DetailBattle";
+import accountService from "./services/account.service";
+
 export const ENDPOINT = "http://127.0.0.1:1337";
 export const socket = io(ENDPOINT);
+
+
+function mapDispatchToProps(dispatch) {
+  return {
+    inviting_off: value => dispatch(inviting_off(value))
+  };
+}
 
 function App(props) {
   const [currentUser, setCurrentUser] = useState(undefined);
@@ -48,6 +62,9 @@ function App(props) {
       case "invite-accepted":
         InviteAcceptedHandler(msg);
         break;
+      case "invite-denied": 
+        InviteDeniedHandler(msg);
+        break;
     }
   }
 
@@ -70,8 +87,17 @@ function App(props) {
     }
   }
 
+  const InviteDeniedHandler = () => {
+    props.inviting_off();
+  }
+
   const handleCloseInvitation = () => {
     setShowInvitation(false);
+  }
+
+  const SignOutHandler = () => {
+    AccountService.logout();
+    window.location.href = "/";
   }
   return (
     //<Homepage/>
@@ -79,7 +105,7 @@ function App(props) {
 
       <Router>
         <div className="App">
-          <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
+          {currentUser &&  <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
             <Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand>
             <Navbar.Toggle aria-controls="responsive-navbar-nav" />
             <Navbar.Collapse id="responsive-navbar-nav">
@@ -95,13 +121,15 @@ function App(props) {
                 </NavDropdown>
               </Nav>
               <Nav>
-                <Nav.Link href="#deets">More deets</Nav.Link>
-                <Nav.Link eventKey={2} href="#memes">
-                  Dank memes
+              
+                <Nav.Link eventKey={2} href="/profile">
+                  Profile
       </Nav.Link>
+      <Nav.Link onClick={SignOutHandler}>Sign Out</Nav.Link>
               </Nav>
             </Navbar.Collapse>
-          </Navbar>
+          </Navbar>}
+         
         </div>
         <InviteModal show={showInvitation} handleClose={handleCloseInvitation} invitationInfo={invitationInfo}/>
 
@@ -109,6 +137,9 @@ function App(props) {
           <Route exact path="/" component={currentUser ? Homepage : Login} />
           <Route path="/caro" component={Homepage} />
           <Route path="/game/:id" render={currentUser ? () => <Gamepage fInGame={setIsInGame} /> : () => Login} />
+          <Route exact path="/profile" component={currentUser ? UserInfo : Login}/>
+          <Route path="/profile/:id/battles" render={currentUser ? () => <Battle userid={AccountService.getCurrentUserInfo().ID} /> : () => Login}  />
+          <Route path="/battles/:id" component={currentUser ? DetailBattle : Login}/>
         </Switch>
 
 
@@ -117,4 +148,4 @@ function App(props) {
   );
 }
 
-export default App;
+export default connect(null, mapDispatchToProps)(App);
