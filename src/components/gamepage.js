@@ -6,6 +6,7 @@ import AccountService from "../services/account.service";
 import { socket } from "../App";
 import Chat from "../commons/Chat";
 import "../assets/custom.css";
+import { Modal, Button, Toast, Spinner } from "react-bootstrap"
 import { useParams } from "react-router-dom";
 import Square from "../commons/Square";
 import { constants } from "crypto";
@@ -181,6 +182,7 @@ function isSubDiagCheck(square, i, j) {
 export default function Gamepage(props) {
   const [row, setRow] = useState(20);
   const [col, setCol] = useState(30);
+  const [winRow, setWinRow] = useState([]);
   const { id } = useParams();
   const user = AccountService.getCurrentUserInfo();
   const [isInit, setIsInit] = useState(false);
@@ -193,6 +195,9 @@ export default function Gamepage(props) {
   const [players, setPlayers] = useState([]);
   const [isReady, setIsReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showDrawModal, setShowDrawModal] = useState(false);
+  const [showDrawDeniedToast, setShowDrawDeniedToast] = useState(false);
+  const [showWaitForSave, setShowWaitForSave] = useState(false);
   const handleClick = (i) => {
     MakeAMove(i);
   };
@@ -254,13 +259,28 @@ export default function Gamepage(props) {
         case "lose-game":
           LoseGameHandler(msg);
           break;
+        case "draw-request":
+          DrawRequest(msg);
+          break;
+        case "draw-accepted":
+          OnAcceptDraw(msg);
+          break;
+        case "draw-denied":
+          OnDeniedDraw(msg);
+          break;
+        case "saved-game":
+          OnSavedGameHandler(msg);
+          break;
       }
     });
     return (() => {
       socket.off("caro-game")
     })
-  }, [end, isReady, isPlaying]);
+  }, [end, isReady, isPlaying, showDrawDeniedToast]);
 
+  const OnSavedGameHandler =(msg) => {
+    setShowWaitForSave(false);
+  }
   function YouJoinedGameHandler(msg) {
     setPlayers(msg.data.players);
     const game = msg.data.game;
@@ -275,7 +295,7 @@ export default function Gamepage(props) {
 
   function PlayerLeftGameHandler(msg) {
     //alert("player left");
-    alert (msg.data.player.name + " left game.");
+    //alert(msg.data.player.name + " left game.");
     setPlayers(msg.data.players);
   }
 
@@ -284,7 +304,7 @@ export default function Gamepage(props) {
   }
 
   function PlayerExisted(msg) {
-    alert("Player existed")
+    //alert("Player existed")
     window.location.href = "/";
   }
 
@@ -364,12 +384,13 @@ export default function Gamepage(props) {
     setIsPlaying(true);
     const newBoard = new Array(row * col).fill(null);
     setSquare(square.fill(null));
+    //setWinRow(null);
     props.fInGame(true);
   }
 
   const GameStartForPlayers = (msg) => {
     let ownedBall = msg.data.ball;
-    
+
     if (ownedBall.id == user.ID) {
       setQ(1);
       setEnd(false);
@@ -380,63 +401,146 @@ export default function Gamepage(props) {
   }
 
   const GameEndHandler = (msg) => {
-    console.log("endgame")
+    console.log("endgame");
+    console.log(msg);
+    console.log(msg.data.winRow);
+    setWinRow(msg.data.winRow);
+    setShowWaitForSave(true);
+    setPlayers(msg.data.players);
     setEnd(true);
     setIsReady(false);
     setIsPlaying(false);
     props.fInGame(false);
   }
 
+  const RequestDrawHandler = () => {
+    socket.emit("caro-game", JSON.stringify({ type: "request-draw", data: { gameId: id, player: user } }));
+  }
+
   const WinGameHandler = (msg) => {
-    alert("You win");
+    //alert("You win");
   }
 
   const LoseGameHandler = (msg) => {
-    alert ("You lose");
+    //alert("You lose");
   }
+
+  const AcceptDraw = () => {
+    socket.emit("caro-game", JSON.stringify({ type: "accept-draw", data: { gameId: id, player: user } }));
+  }
+
+  const DeniedDraw = () => {
+    socket.emit("caro-game", JSON.stringify({ type: "denied-draw", data: { gameId: id, player: user } }));
+    setShowDrawModal(false);
+  }
+
+  const OnAcceptDraw = () => {
+    socket.emit("caro-game", JSON.stringify({ type: "accept-draw", data: { gameId: id, player: user } }));
+    setShowDrawModal(false);
+  }
+
+  const OnDeniedDraw = () => {
+    setShowDrawDeniedToast(true);
+  }
+
+  const DrawRequest = (msg) => {
+    setShowDrawModal(true);
+  };
+
+  const drawSaveModal = () => {
+    return <Modal
+    show={showWaitForSave}
+      size="lg"
+      aria-labelledby="contained-modal-title-vcenter"
+      centered
+      backdrop="static"
+      keyboard={false}
+    >
+      {/* <Modal.Header>
+        <Modal.Title id="contained-modal-title-vcenter mx-auto" style={{display:"block", margin:"0 auto"}} >
+        Saving
+        </Modal.Title>
+      </Modal.Header> */}
+      <Modal.Body style={{textAlign:"center", margin: "2rem auto"}}>
+      <Spinner animation="border" />
+      <div style={{fontWeight:"500"}}>Gathering result</div>
+      </Modal.Body>
+    </Modal>
+  }
+
+  const drawModal = () => {
+    return <Modal show={showDrawModal} >
+      <Modal.Body style={{ fontWeight: "500", textAlign: "center" }}>Opponent wants a draw match, are you agree???</Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={DeniedDraw}>
+          Nope
+      </Button>
+        <Button variant="primary" onClick={AcceptDraw} >
+          OK
+      </Button>
+      </Modal.Footer>
+    </Modal>
+  }
+
   return (
     <>
       {isValidRoom ?
-        <div className="row">
-          <div className="col-md-8">
-            <div className="game">
-              <div className={`game-board `}>
-                <div className={`${end ? "no-click" : ""}`}>
-                  <Board
-                    row={row}
-                    col={col}
-                    square={square}
-                    onClick={(i) => handleClick(i)}
-                  />
+        <>
+          <Toast style={{ backgroundColor:"gray", position: "fixed", zIndex: "3", top: "10%", right: "10%" }} onClose={() => setShowDrawDeniedToast(false)} show={showDrawDeniedToast} delay={2000} autohide>
+            <Toast.Body>Opponent denied your request</Toast.Body>
+          </Toast>
+          {drawSaveModal()}
+          {drawModal()}
+          <div className="row" style={{ maxWidth: "100%" }}>
+            <div className="col-lg-8 col-md-12">
+              <div>
+                Timer
+            </div>
+              <div className="game">
+
+                <div className={`game-board `}>
+                  <div className={`${end ? "no-click" : ""}`}>
+                    <Board
+                      row={row}
+                      col={col}
+                      winRow={winRow}
+                      square={square}
+                      onClick={(i) => handleClick(i)}
+                    />
+                  </div>
+                </div>
+
+              </div>
+              <div style={{ maxWidth: "80%", width: "500px", margin: "0 auto", marginTop: "20px" }}>
+                <button type="button" style={{ marginRight: "5px" }} onClick={ReadyHandler} class={!isReady ? "btn btn-primary" : "btn btn-secondary"} disabled={isPlaying || isReady}>Ready</button>
+                <button type="button" style={{ marginRight: "5px" }} onClick={RequestDrawHandler} class={"btn btn-primary" } disabled={!isPlaying}>Request Draw</button>
+
+                <div>
+                  Player list
+                <ol>
+                    {players.map((player) => {
+                      return (
+                        <li>
+                          {player.ready ? (
+                            <b>{player.name}</b>
+                          ) : (
+                              <>{player.name}</>
+                            )}
+                        </li>
+                      );
+                    })}
+                  </ol>
                 </div>
               </div>
+            </div>
 
+            <div className="col-lg-4 col-md-8 mx-auto m-2" style={{ display: "block" }} >
+              <div className="game-board">
+                <h3 className="p-3">Message</h3>
+                <Chat disableSent={false}></Chat>
+              </div>
             </div>
-            <button type="button" onClick={ReadyHandler} class={!isReady ? "btn btn-primary" : "btn btn-secondary"} disabled={isPlaying || isReady}>Ready</button>
-            <div>
-              Player list
-                <ol>
-                {players.map((player) => {
-                  return (
-                    <li>
-                      {player.ready ? (
-                        <b>{player.name}</b>
-                      ) : (
-                          <p>{player.name}</p>
-                        )}
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="game-board">
-              <h3>Message</h3>
-              <Chat></Chat>
-            </div>
-          </div>
-        </div> :
+          </div> </> :
         <div>Room ID is invalid</div>}
     </>
   );
