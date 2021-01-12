@@ -198,6 +198,9 @@ export default function Gamepage(props) {
   const [showDrawModal, setShowDrawModal] = useState(false);
   const [showDrawDeniedToast, setShowDrawDeniedToast] = useState(false);
   const [showWaitForSave, setShowWaitForSave] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [result, setResult] = useState(null);
+  const [drawRequesting, setDrawRequesting] = useState(false);
   const handleClick = (i) => {
     MakeAMove(i);
   };
@@ -270,6 +273,8 @@ export default function Gamepage(props) {
           break;
         case "saved-game":
           OnSavedGameHandler(msg);
+        case "draw-game":
+          DrawGameHandler(msg);
           break;
       }
     });
@@ -278,7 +283,7 @@ export default function Gamepage(props) {
     })
   }, [end, isReady, isPlaying, showDrawDeniedToast]);
 
-  const OnSavedGameHandler =(msg) => {
+  const OnSavedGameHandler = (msg) => {
     setShowWaitForSave(false);
   }
   function YouJoinedGameHandler(msg) {
@@ -384,7 +389,7 @@ export default function Gamepage(props) {
     setIsPlaying(true);
     const newBoard = new Array(row * col).fill(null);
     setSquare(square.fill(null));
-    //setWinRow(null);
+    setWinRow(null);
     props.fInGame(true);
   }
 
@@ -413,19 +418,34 @@ export default function Gamepage(props) {
     props.fInGame(false);
   }
 
+  const DrawGameHandler = (msg) => {
+    setShowDrawModal(false);
+    setResult(msg.data);
+    setShowResult(true);
+  }
+
   const RequestDrawHandler = () => {
+    setDrawRequesting(true);
     socket.emit("caro-game", JSON.stringify({ type: "request-draw", data: { gameId: id, player: user } }));
   }
 
   const WinGameHandler = (msg) => {
     //alert("You win");
+    setResult(msg.data);
+    console.log(msg.data)
+
+    setShowResult(true);
   }
 
   const LoseGameHandler = (msg) => {
     //alert("You lose");
+    setResult(msg.data);
+    console.log(msg.data)
+    setShowResult(true);
   }
 
   const AcceptDraw = () => {
+    setShowDrawModal(false);
     socket.emit("caro-game", JSON.stringify({ type: "accept-draw", data: { gameId: id, player: user } }));
   }
 
@@ -435,11 +455,13 @@ export default function Gamepage(props) {
   }
 
   const OnAcceptDraw = () => {
-    socket.emit("caro-game", JSON.stringify({ type: "accept-draw", data: { gameId: id, player: user } }));
+    setDrawRequesting(false);
+    //socket.emit("caro-game", JSON.stringify({ type: "accept-draw", data: { gameId: id, player: user } }));
     setShowDrawModal(false);
   }
 
   const OnDeniedDraw = () => {
+    setDrawRequesting(false);
     setShowDrawDeniedToast(true);
   }
 
@@ -449,7 +471,7 @@ export default function Gamepage(props) {
 
   const drawSaveModal = () => {
     return <Modal
-    show={showWaitForSave}
+      show={showWaitForSave}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
       centered
@@ -461,16 +483,38 @@ export default function Gamepage(props) {
         Saving
         </Modal.Title>
       </Modal.Header> */}
-      <Modal.Body style={{textAlign:"center", margin: "2rem auto"}}>
-      <Spinner animation="border" />
-      <div style={{fontWeight:"500"}}>Gathering result</div>
+      <Modal.Body style={{ textAlign: "center", margin: "2rem auto" }}>
+        <Spinner animation="border" />
+        <div style={{ fontWeight: "500" }}>Gathering result</div>
+      </Modal.Body>
+    </Modal>
+  }
+
+  const drawResultModal = () => {
+    return <Modal
+      show={showResult}
+      size="lg"
+      aria-labelledby="contained-modal-title-vcenter"
+      centered
+      backdrop="static"
+      keyboard={false}
+    >
+      {/* <Modal.Header>
+        <Modal.Title id="contained-modal-title-vcenter mx-auto" style={{display:"block", margin:"0 auto"}} >
+        Saving
+        </Modal.Title>
+      </Modal.Header> */}
+      <Modal.Body style={{ textAlign: "center", margin: "2rem auto" }}>
+        <div style={{ fontWeight: "500" }}>{result && result.message}</div>
+        <button type="button" style={{ marginRight: "5px" }} onClick={() => { setShowResult(false) }} class={"btn btn-primary"}>Close</button>
+
       </Modal.Body>
     </Modal>
   }
 
   const drawModal = () => {
     return <Modal show={showDrawModal} >
-      <Modal.Body style={{ fontWeight: "500", textAlign: "center" }}>Opponent wants a draw match, are you agree???</Modal.Body>
+      <Modal.Body style={{ fontWeight: "500", textAlign: "center" }}>Opponent wants a draw match, do you agree???</Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={DeniedDraw}>
           Nope
@@ -486,11 +530,12 @@ export default function Gamepage(props) {
     <>
       {isValidRoom ?
         <>
-          <Toast style={{ backgroundColor:"gray", position: "fixed", zIndex: "3", top: "10%", right: "10%" }} onClose={() => setShowDrawDeniedToast(false)} show={showDrawDeniedToast} delay={2000} autohide>
+          <Toast style={{ backgroundColor: "gray", position: "fixed", zIndex: "3", top: "10%", right: "10%" }} onClose={() => setShowDrawDeniedToast(false)} show={showDrawDeniedToast} delay={2000} autohide>
             <Toast.Body>Opponent denied your request</Toast.Body>
           </Toast>
           {drawSaveModal()}
           {drawModal()}
+          {drawResultModal()}
           <div className="row" style={{ maxWidth: "100%" }}>
             <div className="col-lg-8 col-md-12">
               <div>
@@ -513,7 +558,14 @@ export default function Gamepage(props) {
               </div>
               <div style={{ maxWidth: "80%", width: "500px", margin: "0 auto", marginTop: "20px" }}>
                 <button type="button" style={{ marginRight: "5px" }} onClick={ReadyHandler} class={!isReady ? "btn btn-primary" : "btn btn-secondary"} disabled={isPlaying || isReady}>Ready</button>
-                <button type="button" style={{ marginRight: "5px" }} onClick={RequestDrawHandler} class={"btn btn-primary" } disabled={!isPlaying}>Request Draw</button>
+                <button type="button" style={{ marginRight: "5px" }} onClick={RequestDrawHandler} class={"btn btn-primary"} disabled={!isPlaying || drawRequesting}>Request Draw     <Spinner
+                hidden={!drawRequesting}
+                  as="span"
+                  animation="grow"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                /></button>
 
                 <div>
                   Player list
