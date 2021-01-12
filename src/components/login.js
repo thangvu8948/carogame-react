@@ -3,7 +3,8 @@ import "../assets/login.css";
 import AccountService from "../services/account.service";
 import $ from "jquery";
 import { Spinner } from "react-bootstrap";
-const SERVER_HOST = "http://localhost:1337/";
+import {HOST} from "../constants/constant"
+const SERVER_HOST = HOST;
 export default function Login() {
   const [userName, setUsername] = useState("");
   const [password, setPassword] = useState("");
