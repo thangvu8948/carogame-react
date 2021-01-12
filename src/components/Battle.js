@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import BattltService from "../services/battle.service";
 import { Redirect } from "react-router";
+import accountService from "../services/account.service";
 function Battle(props) {
+  const user = accountService.getCurrentUserInfo();
   const columns = [
     {
       name: "GUID",

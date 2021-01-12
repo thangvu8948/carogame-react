@@ -5,29 +5,34 @@ import Board from "../commons/Board";
 import Chat from "../commons/Chat";
 import $ from "jquery";
 import "../assets/custom.css";
+import { useParams } from "react-router-dom";
+import ChatHistory from "../commons/ChatHistory";
+import { Spinner } from "react-bootstrap";
 function DetailBattle(props) {
   const divStyle = {
     width: "50%",
   };
+  const { id } = useParams();
   const variable = ["X", "O"];
-  const [moves, setMoves] = useState([]);
+  const [moves, setMoves] = useState(null);
   const [visible, setVisible] = useState(false);
-  const [msg, setMsg] = useState([]);
+  const [msg, setMsg] = useState(null);
   const [start, setStart] = useState(false);
   const [current, setCurrent] = useState(0);
   const [square, setSquare] = useState(Array(20 * 30).fill(null));
   useEffect(async () => {
-    const usrs = await MoveService.getMoves(props.id);
+    const usrs = await MoveService.getMoves(id);
     const res = await usrs.json();
     if (res) {
       setMoves(JSON.parse(res.Moves));
     }
   }, []);
   useEffect(() => {
-    renderSquareWith([...moves].slice(0, current));
+    if (moves)
+      renderSquareWith([...moves].slice(0, current));
   }, [current]);
   useEffect(async () => {
-    const cht = await ChatService.getChats(props.id);
+    const cht = await ChatService.getChats(id);
     const res = await cht.json();
     console.log(res);
     if (res) {
@@ -39,6 +44,7 @@ function DetailBattle(props) {
     }
   }, [visible]);
   const renderSquareWith = (_moves) => {
+    if (!moves) return;
     let clone = new Array(20 * 30).fill(null);
     _moves.forEach(function (item, index) {
       clone[item] = variable[index % 2];
@@ -46,6 +52,7 @@ function DetailBattle(props) {
     setSquare(clone);
   };
   const handleStart = () => {
+    console.log("press")
     setStart(true);
   };
   const handleDoubleNext = () => {
@@ -99,10 +106,10 @@ function DetailBattle(props) {
                 Show
               </button>
             ) : msg == null ? (
-              <p>Loanding</p>
+              <Spinner animation="border" />
             ) : (
-              <Chat message={msg}></Chat>
-            )}
+                  <ChatHistory message={msg} disableSent={true} />
+                )}
           </div>
         </div>
       </div>
@@ -113,54 +120,60 @@ function DetailBattle(props) {
             {start == false ? (
               <button
                 type="button"
-                className="cbtn"
+                className="btn btn-primary"
                 onClick={handleStart}
                 disabled={moves == null ? true : false}
               >
-                Start
+                {moves ? <>Start</> : <>Loading <Spinner
+                  as="span"
+                  animation="grow"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                /></>}
               </button>
             ) : (
-              <>
-                <div className="progress" onClick={handleProgress}>
-                  <div
-                    className="progress-bar progress-bar-striped bg-info"
-                    role="progressbar"
-                    style={takePercet()}
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                  ></div>
-                </div>
-                <br />
-                <button
-                  type="button"
-                  className="cbtn"
-                  onClick={handleDoublePrevious}
-                >
-                  <i class="fas fa-angle-double-left"></i>
-                </button>
-                <button
-                  type="button"
-                  className="cbtn"
-                  onClick={handleSinglePrevious}
-                >
-                  <i className="fas fa-angle-left"></i>
-                </button>
-                <button
-                  type="button"
-                  className="cbtn"
-                  onClick={handleSingleNext}
-                >
-                  <i className="fas fa-angle-right"></i>
-                </button>
-                <button
-                  type="button"
-                  className="cbtn"
-                  onClick={handleDoubleNext}
-                >
-                  <i className="fas fa-angle-double-right"></i>
-                </button>
-              </>
-            )}
+                <>
+                  <div className="progress" onClick={handleProgress}>
+                    <div
+                      className="progress-bar progress-bar-striped bg-info"
+                      role="progressbar"
+                      style={takePercet()}
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                    ></div>
+                  </div>
+                  <br />
+                  <button
+                    type="button"
+                    className="cbtn"
+                    onClick={handleDoublePrevious}
+                  >
+                    <i class="fas fa-angle-double-left"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="cbtn"
+                    onClick={handleSinglePrevious}
+                  >
+                    <i className="fas fa-angle-left"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="cbtn"
+                    onClick={handleSingleNext}
+                  >
+                    <i className="fas fa-angle-right"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className="cbtn"
+                    onClick={handleDoubleNext}
+                  >
+                    <i className="fas fa-angle-double-right"></i>
+                  </button>
+                </>
+              )}
           </div>
         </div>
         <div className="col-md-4"></div>
