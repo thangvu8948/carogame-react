@@ -87,14 +87,14 @@ function DetailBattle(props) {
   return (
     <>
       <div className="row">
-        <div className="col-md-8">
+        <div className="col-lg-8 col-md-12 col-sm-12">
           <div className="game">
             <div className={`game-board `}>
               <Board row={20} col={30} square={square} />
             </div>
           </div>
         </div>
-        <div className="col-md-4">
+        <div className="col-lg-4 col-md-8 col-sm-8 mx-auto">
           <div className="game-board">
             <h3>Message</h3>
             {!visible ? (

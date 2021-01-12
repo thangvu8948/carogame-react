@@ -35,6 +35,12 @@ class UserService {
     );
     return res;
   }
+
+  async getAllUser() {
+    const res = await fetch(API_URL + "alluser", { headers: authHeader() });
+    return res;
+  }
+  
   // async auth() {
   //     return await fetch(API_URL + 'auth', { headers: authHeader() });
   // }

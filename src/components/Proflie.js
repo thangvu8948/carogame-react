@@ -18,6 +18,7 @@ function UserInfo(props) {
     //console.log(fives);
     const res = await usrs.json();
     const res1 = await fives.json();
+    console.log(res1);
     if (res) {
       //console.log(res1);
       //console.log(five);

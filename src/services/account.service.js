@@ -14,23 +14,18 @@ class AccountService {
       { "Content-Type": "application/json" }
     );
     localStorage.setItem("user", JSON.stringify(res.token));
+    // localStorage.setItem("token", res.token?.toString());
+    localStorage.setItem("verify", res.IsVeryfied?.toString());
     return res;
   }
 
   logout() {
     localStorage.removeItem("user");
   }
-
-  async register(name, password, repassword) {
-    return await Post(
-      API_URL + "register",
-      {
-        Username: name,
-        Password: password,
-        RePassword: repassword,
-      },
-      { "Content-Type": "application/json" }
-    );
+  async register(data) {
+    return await Post(API_URL + "register", data, {
+      "Content-Type": "application/json",
+    });
   }
 
   getCurrentUser() {
@@ -43,9 +38,9 @@ class AccountService {
     return data;
   }
 
-  // async auth() {
-  //     return await fetch(API_URL + 'auth', { headers: authHeader() });
-  // }
+  async auth(token) {
+    return await fetch(API_URL + "user/auth", { headers: authHeader(token) });
+  }
 }
 
 export default new AccountService();

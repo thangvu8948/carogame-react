@@ -25,7 +25,7 @@ export default function Board(props) {
       <Square
         key={i}
         value={props.square[i]}
-        onClick={() => props.onClick(i)}
+        onClick={() => props.onClick && props.onClick(i)}
         isWinCell={props.winRow && props.winRow.includes(i)}
       />
     );

@@ -13,8 +13,11 @@ import {connect} from "react-redux";
 import { inviting_off } from "./actions";
 import UserInfo from "./components/Proflie";
 import Battle from "./components/Battle";
+import Splash from "./components/splash";
 import DetailBattle from "./components/DetailBattle";
 import accountService from "./services/account.service";
+import Notifycation from "./components/notification";
+import LeaderBoard from "./components/leaderboard";
 
 export const ENDPOINT = "http://127.0.0.1:1337";
 export const socket = io(ENDPOINT);
@@ -106,22 +109,14 @@ function App(props) {
       <Router>
         <div className="App">
           {currentUser &&  <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
-            <Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand>
+            <Navbar.Brand href="/">CARO GAME</Navbar.Brand>
             <Navbar.Toggle aria-controls="responsive-navbar-nav" />
             <Navbar.Collapse id="responsive-navbar-nav">
-              <Nav className="mr-auto">
-                <Nav.Link href="#features">Features</Nav.Link>
-                <Nav.Link href="#pricing">Pricing</Nav.Link>
-                <NavDropdown title="Dropdown" id="collasible-nav-dropdown">
-                  <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
-                  <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>
-                  <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
-                  <NavDropdown.Divider />
-                  <NavDropdown.Item href="#action/3.4">Separated link</NavDropdown.Item>
-                </NavDropdown>
-              </Nav>
-              <Nav>
               
+              <Nav className="ml-auto">
+              <Nav.Link eventKey={2} href="/leaderboard">
+                  Leaderboard
+      </Nav.Link>
                 <Nav.Link eventKey={2} href="/profile">
                   Profile
       </Nav.Link>
@@ -140,6 +135,21 @@ function App(props) {
           <Route exact path="/profile" component={currentUser ? UserInfo : Login}/>
           <Route path="/profile/:id/battles" render={currentUser ? () => <Battle userid={AccountService.getCurrentUserInfo().ID} /> : () => Login}  />
           <Route path="/battles/:id" component={currentUser ? DetailBattle : Login}/>
+          <Route
+            exact
+            path="/splash/:token"
+            render={(props) => {
+              return <Splash token={props.match.params.token} />;
+            }}
+          />
+            <Route
+            exact
+            path="/notify/:data"
+            render={(props) => {
+              return <Notifycation data={props.match.params.data} />;
+            }}
+          />
+          <Route path="/leaderboard" component={currentUser ? LeaderBoard : Login} />
         </Switch>
 
 
