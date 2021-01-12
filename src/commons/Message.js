@@ -1,6 +1,15 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import userService from "../services/user.service";
 
 const Message = (props) => {
+  const [sdr, setSdr] = useState(null);
+  useEffect( async () => {
+    const sender = await userService.getUserByAccountId(props.senderId);
+    console.log(sender);
+    const senderData = await sender.json();
+    console.log(senderData);
+    setSdr(senderData);
+  }, []);
   return props.mine ? (
     <div className="outgoing_msg">
       <div className="sent_msg">
@@ -14,10 +23,11 @@ const Message = (props) => {
   ) : (
     <div className="incoming_msg">
       <div className="incoming_msg_img">
-        {/* <img
-          src="https://ptetutorials.com/images/user-profile.png"
+        <img
+          src={ sdr ? sdr.Avatar : "https://ptetutorials.com/images/user-profile.png"}
           alt={props.Username}
-        /> */}
+          title={props.Username}
+        />
       </div>
       <div className="received_msg">
         <div className="received_withd_msg">
