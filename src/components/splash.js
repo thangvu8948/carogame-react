@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AccountService from "../services/account.service";
-const SERVER_HOST = "http://localhost:1337/";
+import {HOST} from "../constants/constant";
+const SERVER_HOST = HOST;
 function Splash(props) {
   const [message, setMessage] = useState("Waiting Verify!");
   useEffect(async () => {

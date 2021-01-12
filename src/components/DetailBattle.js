@@ -99,7 +99,7 @@ function DetailBattle(props) {
     if (!battleDetail) return <></>;
     let yourSign = "";
     let result = "";
-    if (battleDetail.WinnerID == user.WinnerID) {
+    if (battleDetail.WinnerID == user.ID) {
       yourSign = battleDetail.SignOfWinner;
     } else {
       yourSign = battleDetail.SignOfWinner == "X" ? "O" : "X";

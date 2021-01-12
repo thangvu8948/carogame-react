@@ -6,9 +6,12 @@ const Message = (props) => {
   useEffect( async () => {
     const sender = await userService.getUserByAccountId(props.senderId);
     console.log(sender);
-    const senderData = await sender.json();
-    console.log(senderData);
-    setSdr(senderData);
+    try {
+      const senderData = await sender.json();
+      console.log(senderData);
+      setSdr(senderData);
+    } catch(e) {}
+
   }, []);
   return props.mine ? (
     <div className="outgoing_msg">
