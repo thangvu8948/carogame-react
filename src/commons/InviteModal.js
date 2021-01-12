@@ -32,10 +32,10 @@ const InviteModal = (props) => {
         <Modal.Body>Woohoo, you have an invitation for a game from {invitationInfo && invitationInfo.data.sender.Username}</Modal.Body>
         <Modal.Footer>
             <Button variant="secondary" onClick={deniedHandler}>
-                Close
+                No
       </Button>
             <Button variant="primary" onClick={acceptHandler}>
-                Save Changes
+                Accept
                 <span hidden={!loading}><div class="mx-1 spinner-border text-light spinner-grow-sm" role="status">
                     <span class="sr-only">Loading...</span>
                 </div></span>

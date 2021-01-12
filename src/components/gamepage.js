@@ -11,7 +11,7 @@ import { useParams } from "react-router-dom";
 import Square from "../commons/Square";
 import { constants } from "crypto";
 // import "../assets/login.css";
-const row = 20;
+/* const row = 20;
 const col = 30;
 function listToMatrix(list, elementsPerSubArray) {
   var matrix = [],
@@ -43,29 +43,29 @@ const checkWin = (square, just) => {
   return [false, square[just]];
 };
 function isHorizontalCheck(square, i, j) {
-  //int di = 0;
+  int di = 0;
   let dj = -1; // Di qua trai
-  //int startI = i;
+  int startI = i;
   let startJ = j;
-  //left
+  left
   let countLeft = 1;
   while (startJ + dj >= 0) {
     startJ += dj; // Di qua trai
     if (square[i][j] == square[i][startJ]) {
-      // Tang bien dem
+      Tang bien dem
       countLeft++;
     } else {
       break;
     }
   }
-  //right
+  right
   startJ = j;
   dj = 1;
   let countRight = 0;
   while (startJ + dj <= col) {
     startJ += dj; // Di qua phai
     if (square[i][j] == square[i][startJ]) {
-      // Tang bien dem
+      Tang bien dem
       countRight++;
     } else {
       break;
@@ -78,25 +78,25 @@ function isHorizontalCheck(square, i, j) {
 function isVerticalCheck(square, i, j) {
   let di = -1;
   let startI = i;
-  //top
+  top
   let countTop = 1;
   while (startI + di >= 0) {
     startI += di; // Di len
     if (square[i][j] == square[startI][j]) {
-      // Tang bien dem
+      Tang bien dem
       countTop++;
     } else {
       break;
     }
   }
-  //right
+  right
   startI = i;
   di = 1;
   let countDown = 0;
   while (startI + di <= row) {
     startI += di; // Di xuong
     if (square[i][j] == square[startI][j]) {
-      // Tang bien dem
+      Tang bien dem
       countDown++;
     } else {
       break;
@@ -111,19 +111,19 @@ function isPrimaryDiagCheck(square, i, j) {
   let dj = -1;
   let startI = i;
   let startJ = j;
-  // .....
+  .....
   let countTop = 1;
   while (startI + di >= 0 && startJ + dj >= 0) {
     startI += di; // Di len
     startJ += dj; // Đi qua trái
     if (square[startI][startJ] == square[i][j]) {
-      // Tang bien dem
+      Tang bien dem
       countTop++;
     } else {
       break;
     }
   }
-  //.....
+  .....
   startI = i;
   di = 1;
   startJ = j;
@@ -133,7 +133,7 @@ function isPrimaryDiagCheck(square, i, j) {
     startI += di; // Di xuong
     startJ += dj; // Đi qua phải
     if (square[startI][startJ] == square[i][j]) {
-      // Tang bien dem
+      Tang bien dem
       countDown++;
     } else {
       break;
@@ -148,19 +148,19 @@ function isSubDiagCheck(square, i, j) {
   let dj = 1;
   let startI = i;
   let startJ = j;
-  // .....
+  .....
   let countTop = 1;
   while (startI + di >= 0 && startJ + dj <= col) {
     startI += di;
     startJ += dj;
     if (square[startI][startJ] == square[i][j]) {
-      // Tang bien dem
+      Tang bien dem
       countTop++;
     } else {
       break;
     }
   }
-  //.....
+  .....
   startI = i;
   di = 1;
   startJ = j;
@@ -170,7 +170,7 @@ function isSubDiagCheck(square, i, j) {
     startI += di;
     startJ += dj;
     if (square[startI][startJ] == square[i][j]) {
-      // Tang bien dem
+      Tang bien dem
       countDown++;
     } else {
       break;
@@ -178,8 +178,9 @@ function isSubDiagCheck(square, i, j) {
   }
 
   return countTop + countDown == 5;
-}
+} */
 export default function Gamepage(props) {
+  const COUNT_TIME = 15;
   const [row, setRow] = useState(20);
   const [col, setCol] = useState(30);
   const [winRow, setWinRow] = useState([]);
@@ -201,9 +202,28 @@ export default function Gamepage(props) {
   const [showResult, setShowResult] = useState(false);
   const [result, setResult] = useState(null);
   const [drawRequesting, setDrawRequesting] = useState(false);
+  const [seconds, setSeconds] = useState(COUNT_TIME);
+  const [timerStop, setTimerStop] = useState(true);
+  const [withdrawing, setWithdrawing] = useState(false);
+  let timer = null;
   const handleClick = (i) => {
     MakeAMove(i);
   };
+
+  useEffect(() => {
+    if (timerStop || seconds < 0 || showDrawModal) return;
+    const itv = setInterval(() => {
+      setSeconds(seconds -1);
+      console.log(seconds);
+
+      if (seconds <= 0) {
+        console.log("timeout");
+        setTimerStop(true);
+        socket.emit("caro-game", JSON.stringify({type: "move-timeout", data: {gameId: id}}));
+      }
+    }, 1000);
+    return () => clearInterval(itv); 
+  }, [timerStop, seconds])
 
   useEffect(() => {
     if (!isInit) {
@@ -216,7 +236,7 @@ export default function Gamepage(props) {
       );
       setIsInit(true);
     }
-  }, [])
+  }, [seconds])
 
   useEffect(() => {
     socket.on("caro-game", (msg) => {
@@ -281,8 +301,26 @@ export default function Gamepage(props) {
     return (() => {
       socket.off("caro-game")
     })
-  }, [end, isReady, isPlaying, showDrawDeniedToast]);
+  }, [end, isReady, isPlaying, showDrawDeniedToast, seconds]);
 
+  const countDown = () => {
+    const s = seconds - 1;
+    console.log(s);
+    setSeconds(s);
+    //console.log(seconds);
+    if (seconds == 0) {
+      stopTimer();
+    }
+  }
+
+  const startTimer = () => {
+    timer = setInterval(countDown.bind(this), 1000);
+  }
+
+  const stopTimer = () => {
+    clearInterval(timer);
+    console.log("timer stopped");
+  }
   const OnSavedGameHandler = (msg) => {
     setShowWaitForSave(false);
   }
@@ -330,25 +368,18 @@ export default function Gamepage(props) {
     setSquare(square => [...board]);
   }
   function MakeAMove2(move, sign) {
-    //setSquare(board);
-    //let newsquare = square.map((x) => x);
     let newsquare = [...square];
     newsquare[move] = sign;
-    //console.log(newsquare)
     console.log("change status");
     setSquare(square => [...newsquare]);
     if (isReady) {
       setEnd(false);
+      setSeconds(COUNT_TIME);
+      setTimerStop(false);
     }
     console.log(isReady);
     console.log(end);
-    // setTimeout(() => {
-    //   const [res, turn] = checkWin(board, move);
-    //   if (res) {
-    //     alert(`${turn} win`)
-    //     setEnd(true);
-    //   }
-    // }, 10)
+
   }
 
   function MakeAMove(i) {
@@ -358,7 +389,8 @@ export default function Gamepage(props) {
       newsquare[i] = temp[q];
       setSquare(newsquare);
       setEnd(true);
-
+      setTimerStop(true);
+      setSeconds(COUNT_TIME);
       socket.emit(
         "caro-game",
         JSON.stringify({
@@ -387,6 +419,8 @@ export default function Gamepage(props) {
   const GameStartHandler = (msg) => {
     console.log("start game")
     setIsPlaying(true);
+    setWithdrawing(false);
+    setDrawRequesting(false);
     const newBoard = new Array(row * col).fill(null);
     setSquare(square.fill(null));
     setWinRow(null);
@@ -399,6 +433,9 @@ export default function Gamepage(props) {
     if (ownedBall.id == user.ID) {
       setQ(1);
       setEnd(false);
+      setSeconds(COUNT_TIME);
+      setTimerStop(false);
+      //startTimer();
     } else {
       setQ(2);
       setEnd(true)
@@ -410,6 +447,9 @@ export default function Gamepage(props) {
     console.log(msg);
     console.log(msg.data.winRow);
     setWinRow(msg.data.winRow);
+    setShowDrawModal(false);
+    setWithdrawing(false);
+    setDrawRequesting(false);
     setShowWaitForSave(true);
     setPlayers(msg.data.players);
     setEnd(true);
@@ -451,6 +491,7 @@ export default function Gamepage(props) {
 
   const DeniedDraw = () => {
     socket.emit("caro-game", JSON.stringify({ type: "denied-draw", data: { gameId: id, player: user } }));
+    setSeconds(seconds + 3);
     setShowDrawModal(false);
   }
 
@@ -469,6 +510,10 @@ export default function Gamepage(props) {
     setShowDrawModal(true);
   };
 
+  const WithdrawHandler = () => {
+    setWithdrawing(true);
+    socket.emit('caro-game', JSON.stringify({type: "withdraw", data: {gameId: id}}));
+  }
   const drawSaveModal = () => {
     return <Modal
       show={showWaitForSave}
@@ -492,7 +537,7 @@ export default function Gamepage(props) {
 
   const drawResultModal = () => {
     return <Modal
-      show={showResult}
+      show={showResult && result && result.message}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
       centered
@@ -505,8 +550,8 @@ export default function Gamepage(props) {
         </Modal.Title>
       </Modal.Header> */}
       <Modal.Body style={{ textAlign: "center", margin: "2rem auto" }}>
-        <div style={{ fontWeight: "500" }}>{result && result.message}</div>
-        <button type="button" style={{ marginRight: "5px" }} onClick={() => { setShowResult(false) }} class={"btn btn-primary"}>Close</button>
+        <div style={{ fontWeight: "500", fontSize:"20px" }}>{result && result.message}</div>
+        <button type="button" style={{ marginTop: "15px" }} onClick={() => { setShowResult(false) }} class={"btn btn-primary"}>Close</button>
 
       </Modal.Body>
     </Modal>
@@ -538,9 +583,9 @@ export default function Gamepage(props) {
           {drawResultModal()}
           <div className="row" style={{ maxWidth: "100%" }}>
             <div className="col-lg-8 col-md-12">
-              <div>
-                Timer
-            </div>
+              <h2 style={{textAlign:"center", marginTop:"20px"}}>
+                <>{timerStop ? "Waiting opponent" : seconds}</>
+            </h2>
               <div className="game">
 
                 <div className={`game-board `}>
@@ -558,15 +603,22 @@ export default function Gamepage(props) {
               </div>
               <div style={{ maxWidth: "80%", width: "500px", margin: "0 auto", marginTop: "20px" }}>
                 <button type="button" style={{ marginRight: "5px" }} onClick={ReadyHandler} class={!isReady ? "btn btn-primary" : "btn btn-secondary"} disabled={isPlaying || isReady}>Ready</button>
-                <button type="button" style={{ marginRight: "5px" }} onClick={RequestDrawHandler} class={"btn btn-primary"} disabled={!isPlaying || drawRequesting}>Request Draw     <Spinner
-                hidden={!drawRequesting}
+                <button type="button" style={{ marginRight: "5px" }} onClick={RequestDrawHandler} class={"btn btn-primary"} disabled={!isPlaying || drawRequesting || !isReady}>Request Draw     <Spinner
+                  hidden={!drawRequesting}
                   as="span"
                   animation="grow"
                   size="sm"
                   role="status"
                   aria-hidden="true"
                 /></button>
-
+                <button type="button" style={{ marginRight: "5px" }} onClick={WithdrawHandler} class={"btn btn-primary"} disabled={!isPlaying || withdrawing || !isReady}>Withdraw     <Spinner
+                  hidden={!withdrawing}
+                  as="span"
+                  animation="grow"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                /></button>
                 <div>
                   Player list
                 <ol>

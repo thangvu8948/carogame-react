@@ -5,7 +5,6 @@ export default function Board(props) {
   const createBoard = (row, col) => {
     const board = [];
     let cellCounter = 0;
-    console.log(props.winRow);
     for (let i = 0; i < row; i += 1) {
       const columns = [];
       for (let j = 0; j < col; j += 1) {
