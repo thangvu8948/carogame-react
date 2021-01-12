@@ -447,6 +447,7 @@ export default function Gamepage(props) {
     console.log(msg);
     console.log(msg.data.winRow);
     setWinRow(msg.data.winRow);
+    setTimerStop(true);
     setShowDrawModal(false);
     setWithdrawing(false);
     setDrawRequesting(false);

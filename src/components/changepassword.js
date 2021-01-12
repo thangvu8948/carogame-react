@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import $ from "jquery";
 import Post from "../HTTPrequests/Post";
-const SERVER_HOST = "http://localhost:1337/";
+import { HOST } from "../constants/constant";
+const SERVER_HOST = HOST;
 function ChangePassword(props) {
   const value = atob(props.code).split("|");
+  const [isValid, setIsValid] = useState(true);
   const handleChangePassword = async (event) => {
     event.preventDefault();
     var data = {};
@@ -12,6 +14,10 @@ function ChangePassword(props) {
       .map(function (x) {
         data[x.name] = x.value;
       });
+    if (!checkValid(data)) {
+      setIsValid(false);
+      return;
+    }
     console.log(data);
     const res = await Post(`${SERVER_HOST}changepassword/${value[0]}`, data, {
       "Content-Type": "application/json",
@@ -23,10 +29,19 @@ function ChangePassword(props) {
       alert("bad newtwork or mistake password");
     }
   };
+  const checkValid = (data) => {
+    if (data.newpass != "" && data.newpass == data.copass) {
+      return true;
+    }
+    return false;
+  }
   return (
     <div className="container">
       <div className="row">
-        <div className="col-md-4 col-md-offset-4">
+        <div className="col-md-4 col-md-offset-4" style={{
+          margin: "0 auto",
+          marginTop: "2rem"
+        }}>
           <div className="panel panel-default">
             <div className="panel-body">
               <div className="text-center">
@@ -64,6 +79,9 @@ function ChangePassword(props) {
                         />
                       </div>
                     </div>
+                    <div hidden={isValid} class="alert alert-danger" role="alert">
+                      Password does not match or is empty
+</div>
                     <div className="form-group">
                       <input
                         name="recover-submit"

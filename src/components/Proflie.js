@@ -50,10 +50,11 @@ function UserInfo(props) {
     setModifyInfo(u);
   }
   const status = (item) => {
+    console.log(item);
     if (item.IsDraw) {
       return "Draw";
     } else {
-      if (item.WinnerID == props.id) {
+      if (item.WinnerID == user.ID) {
         return "Win";
       } else {
         return "Loser";

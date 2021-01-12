@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from "react";
 import $ from "jquery";
 import Post from "../HTTPrequests/Post";
-const SERVER_HOST = "http://localhost:1337/";
+import { HOST } from "../constants/constant";
+import { Spinner } from "react-bootstrap"
+const SERVER_HOST = HOST;
 function Forgot(props) {
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isFailed, setIsFailed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const handleSubmitLogin = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
     var data = {};
     $("#form-email")
       .serializeArray()
@@ -17,15 +23,21 @@ function Forgot(props) {
     });
     console.log(res);
     if (res) {
-      alert("OK! Check Mail!");
+      setIsFailed(false);
+      setIsSuccess(true);
     } else {
-      alert("bad newtwork or mistake email");
+      setIsSuccess(false);
+      setIsFailed(true);
     }
+    setIsLoading(false);
   };
   return (
     <div className="container">
       <div className="row">
-        <div className="col-md-4 col-md-offset-4">
+        <div className="col-md-4 col-md-offset-4" style={{
+          margin: "0 auto",
+          marginTop: "2rem"
+        }}>
           <div className="panel panel-default">
             <div className="panel-body">
               <div className="text-center">
@@ -53,12 +65,30 @@ function Forgot(props) {
                       </div>
                     </div>
                     <div className="form-group">
-                      <input
-                        className="btn btn-lg btn-primary btn-block"
+                      <button className="btn btn-lg btn-primary btn-block"
                         value="Reset Password"
-                        type="submit"
-                      />
+                        type="submit">
+                        Reset Password
+                          <Spinner
+                          hidden={!isLoading}
+                          as="span"
+                          className="mx-2 my-1"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      </button>
                     </div>
+
+                    <div hidden={!isSuccess} class="alert alert-success" role="alert">
+                      OK! Check Mail!
+                      </div>
+
+                    <div hidden={!isFailed} class="alert alert-danger" role="alert">
+                      Bad Network or Email is not exist
+                      </div>
+
                   </form>
                 </div>
               </div>
@@ -66,7 +96,7 @@ function Forgot(props) {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
 

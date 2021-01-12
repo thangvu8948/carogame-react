@@ -28,8 +28,9 @@ import Notifycation from "./components/notification";
 import LeaderBoard from "./components/leaderboard";
 import Forgot from "./components/forgot";
 import ChangePassword from "./components/changepassword";
+import {HOST} from "./constants/constant";
 
-export const ENDPOINT = "http://127.0.0.1:1337";
+export const ENDPOINT = HOST;
 export const socket = io(ENDPOINT);
 
 function mapDispatchToProps(dispatch) {

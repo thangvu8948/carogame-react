@@ -16,9 +16,9 @@ import {connect} from "react-redux";
 import { propTypes } from "react-bootstrap/esm/Image";
 
 export const BoardSize = [
-  { row: 15, col: 20 },
+  // { row: 15, col: 20 },
   { row: 20, col: 30 },
-  { row: 30, col: 40 }
+  // { row: 30, col: 40 }
 ]
 
 
@@ -41,7 +41,7 @@ const Homepage = (props) => {
   const [roomInviteId, setRoomInviteId] = useState("");
   const [size, setSize] = useState(1);
   const [room_type_idx, setRoom_Type_Idx] = useState(0);
-  const options = ["Small (15 x 20)", "Standard (20 x 30)", "Large (30 x 40)"];
+  const options = ["Standard (20 x 30)"];
   const room_type = ["Public", "Private"];
   const [games, setGames] = useState([]);
   const [isRoomIdValid, setIsRoomIdValid] = useState(true);

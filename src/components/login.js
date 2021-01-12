@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "../assets/login.css";
 import AccountService from "../services/account.service";
 import $ from "jquery";
+import { Spinner } from "react-bootstrap";
 const SERVER_HOST = "http://localhost:1337/";
 export default function Login() {
   const [userName, setUsername] = useState("");
@@ -12,6 +13,8 @@ export default function Login() {
   const genders = ["Male", "Female", "Other"];
   const [gender, setGender] = useState(0);
   const [email, setEmail] = useState("");
+  const [signInFailed, setSignInFailed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   // function validateForm() {
   //     return email.length > 0 && password.length > 0;
   // }
@@ -23,23 +26,31 @@ export default function Login() {
   };
   const handleSubmitLogin = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
+
     const res = await AccountService.login(userName, password);
     console.log(res);
     if (Boolean(res.token)) {
+      setSignInFailed(false);
       const tokens = res.token.split(".");
       const data = JSON.parse(atob(tokens[1]));
       window.location.reload();
+    }else {
+      setSignInFailed(true);
     }
     if (Boolean(res.IsVeryfied)) {
       window.location.href = `/notify/${res.IsVeryfied}`;
     } else {
     }
+    setIsLoading(false);
+
   };
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
   };
   const handleSubmitRegister = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
     var data = {};
     $("#signupform")
       .serializeArray()
@@ -52,14 +63,15 @@ export default function Login() {
       alert("Sign Up Successfull");
       window.location.href = `/notify/${res}`;
     }
+    setIsLoading(false);
   };
   const changeGenderHandler = (e) => {
     setGender(e.target.selectedIndex);
   };
   return (
     <div className="row">
-      <div className="col-md-6 mx-auto p-0">
-        <div className="card">
+      <div className="container">
+        <div className="card" style={{ display: "block", margin: "0 auto", top: "100px", maxWidth: "80%", left: "0px" }}>
           <div className="login-box">
             <div className="login-snip">
               <input
@@ -112,10 +124,27 @@ export default function Login() {
                                                 
                                                 </label>
                                     </div> */}
-                    <div className="group">
-                      <input type="submit" className="button" value="Sign In" />
+                    <div className="group" >
+                      <button className="btn btn-lg btn-primary btn-block"
+                        value="Sign In"
+                        type="submit">
+                        Sign In
+                          <Spinner
+                          hidden={!isLoading}
+                          as="span"
+                          className="mx-2 my-1"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <div hidden={!signInFailed} class="alert alert-danger my-2" style={{textAlign:"center"}} role="alert">
+                        Password or Username is not correct
+</div>
+                      {/* <input type="submit" className="button" value="Sign In" /> */}
                     </div>
-                    <div className="group">
+                    <div className="group my-4" style={{ textAlign: "center" }}>
                       <a
                         href={`${SERVER_HOST}auth/facebook`}
                         class="link_button"
@@ -123,7 +152,7 @@ export default function Login() {
                         Facebook
                       </a>
                     </div>
-                    <div className="group">
+                    <div className="group my-4" style={{ textAlign: "center" }}>
                       <a href={`${SERVER_HOST}auth/google`} class="link_button">
                         Google
                       </a>
@@ -193,6 +222,7 @@ export default function Login() {
                         Gender
                       </label>
                       <select
+                       style={{height:"auto"}}
                         className="input custom-select"
                         id="inputGroupSelect01"
                         onChange={changeGenderHandler}
@@ -220,7 +250,21 @@ export default function Login() {
                                     </div> */}
                     <div className="group">
                       {" "}
-                      <input type="submit" className="button" value="Sign Up" />
+                      <button className="btn btn-lg btn-primary btn-block"
+                        value="Sign In"
+                        type="submit">
+                        Sign Up
+                          <Spinner
+                          hidden={!isLoading}
+                          as="span"
+                          className="mx-2 my-1"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        />
+                      </button>
+                      {/* <input type="submit" className="button" value="Sign Up" /> */}
                     </div>
                     <div className="hr"></div>
                     <div className="foot">

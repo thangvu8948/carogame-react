@@ -1,6 +1,8 @@
 import authHeader from "../HTTPrequests/auth-header";
 import Post from "../HTTPrequests/Post";
-const API_URL = "http://localhost:1337/user/";
+import {HOST} from "../constants/constant";
+const API_URL = `${HOST}user/`;
+
 
 class MoveService {
   async getMoves(bid) {

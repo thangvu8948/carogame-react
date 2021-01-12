@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Post from "../HTTPrequests/Post";
-const SERVER_HOST = "http://localhost:1337/";
+import {HOST} from "../constants/constant";
+const SERVER_HOST = HOST;
 function Notifycation(props) {
   const [data, setData] = useState(null);
   const [timeout, setTimeOut] = useState(false);
