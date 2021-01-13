@@ -429,7 +429,7 @@ export default function Gamepage(props) {
 
   const GameStartForPlayers = (msg) => {
     let ownedBall = msg.data.ball;
-
+    setWinRow([])
     if (ownedBall.id == user.ID) {
       setQ(1);
       setEnd(false);
