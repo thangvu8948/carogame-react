@@ -39,7 +39,7 @@ const Homepage = (props) => {
   const [loadRoomId, setLoadRoomId] = useState(false);
   const [roomName, setRoomName] = useState("");
   const [roomInviteId, setRoomInviteId] = useState("");
-  const [size, setSize] = useState(1);
+  const [size, setSize] = useState(0);
   const [room_type_idx, setRoom_Type_Idx] = useState(0);
   const options = ["Standard (20 x 30)"];
   const room_type = ["Public", "Private"];
